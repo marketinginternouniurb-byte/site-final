@@ -2,7 +2,7 @@
 import { ArrowRight, CheckCircle2, Home, MapPin, ShieldCheck, Sparkles } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 
-export const Route = createFileRoute("/universal-simplifica")({
+export const Route = createFileRoute("/universal-facilita")({
   component: UniversalSimplifica,
 });
 
@@ -34,7 +34,7 @@ function UniversalSimplifica() {
           <div className="container relative z-10 mx-auto grid grid-cols-1 items-center gap-8 px-5 pb-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-16">
             <div className="max-w-4xl text-white">
               <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#FFD700]/45 bg-[#FFD700]/12 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-[#FFD700]">
-                <Sparkles className="h-4 w-4" /> Universal Simplifica
+                <Sparkles className="h-4 w-4" /> Universal Facilita
               </p>
 
               <h1 className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
@@ -115,7 +115,7 @@ function UniversalSimplifica() {
                 Próximo passo
               </p>
               <h2 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">
-                Gostou do Simplifica? Agora fale com o Lotti e entre no Facilita.
+                Gostou do Facilita? Agora fale com o Lotti e entre no Facilita.
               </h2>
             </div>
             <a

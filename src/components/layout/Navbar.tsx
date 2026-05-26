@@ -122,9 +122,9 @@ export default function Navbar() {
                 <div className="h-px bg-white/10" />
 
                 <Link
-                  to="/universal-simplifica"
+                  to="/universal-facilita"
                   onClick={() => setIsMenuFixed(false)}
-                  className="flex min-h-[88px] items-center justify-center rounded-2xl bg-[#FFD700] p-4 text-[#123AAA] shadow-[0_10px_20px_rgba(255,215,0,0.2)] transition-transform hover:scale-[1.03]"
+                 className="flex min-h-[88px] items-center justify-center rounded-2xl bg-white p-4 transition-transform hover:scale-[1.03]"
                   aria-label="Universal Facilita"
                 >
                   <img

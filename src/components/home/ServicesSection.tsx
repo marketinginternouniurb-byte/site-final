@@ -73,10 +73,10 @@ export default function ServicesSection() {
               </div>
 
               <a
-                href={p.facilita ? "/universal-simplifica" : "/contato"}
+                href={p.facilita ? "/universal-facilita" : "/contato"}
                 className={`mt-6 block w-full rounded-xl py-3 font-bold transition-all ${p.facilita ? "bg-[#FFD700] text-[#123AAA] hover:scale-105" : "bg-[#123AAA] text-white hover:bg-[#123AAA]/90"}`}
               >
-                {p.facilita ? "Conhecer o Simplifica" : "Ver Detalhes"}
+                {p.facilita ? "Conhecer o Facilita" : "Ver Detalhes"}
               </a>
             </div>
           ))}

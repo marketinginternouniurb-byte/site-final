@@ -41,10 +41,10 @@ export default function HeroSection() {
 
           <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
             <a
-              href="/universal-simplifica"
+              href="/universal-facilita"
               className="flex w-full items-center justify-center gap-3 rounded-full bg-[#FFD700] px-8 py-4 text-sm font-black uppercase tracking-widest text-[#123AAA] shadow-[0_15px_35px_rgba(255,215,0,0.4)] transition-all hover:scale-105 hover:bg-[#e6bd00] active:scale-95 sm:w-auto"
             >
-              Universal Simplifica <ArrowRight className="h-5 w-5 stroke-[3]" />
+              Universal Facilita <ArrowRight className="h-5 w-5 stroke-[3]" />
             </a>
 
             <button

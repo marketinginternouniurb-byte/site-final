@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UniversalSimplificaRouteImport } from './routes/universal-simplifica'
+import { Route as UniversalFacilitaRouteImport } from './routes/universal-facilita'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as LoginRouteImport } from './routes/login'
@@ -26,9 +26,9 @@ import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminDepoimentosRouteImport } from './routes/admin.depoimentos'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 
-const UniversalSimplificaRoute = UniversalSimplificaRouteImport.update({
-  id: '/universal-simplifica',
-  path: '/universal-simplifica',
+const UniversalFacilitaRoute = UniversalFacilitaRouteImport.update({
+  id: '/universal-facilita',
+  path: '/universal-facilita',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SobreRoute = SobreRouteImport.update({
@@ -115,7 +115,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sobre': typeof SobreRoute
-  '/universal-simplifica': typeof UniversalSimplificaRoute
+  '/universal-facilita': typeof UniversalFacilitaRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/depoimentos': typeof AdminDepoimentosRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -132,7 +132,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sobre': typeof SobreRoute
-  '/universal-simplifica': typeof UniversalSimplificaRoute
+  '/universal-facilita': typeof UniversalFacilitaRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/depoimentos': typeof AdminDepoimentosRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -151,7 +151,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/sobre': typeof SobreRoute
-  '/universal-simplifica': typeof UniversalSimplificaRoute
+  '/universal-facilita': typeof UniversalFacilitaRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/depoimentos': typeof AdminDepoimentosRoute
   '/admin/leads': typeof AdminLeadsRoute
@@ -171,7 +171,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/politica-de-privacidade'
     | '/sobre'
-    | '/universal-simplifica'
+    | '/universal-facilita'
     | '/admin/blog'
     | '/admin/depoimentos'
     | '/admin/leads'
@@ -188,7 +188,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/politica-de-privacidade'
     | '/sobre'
-    | '/universal-simplifica'
+    | '/universal-facilita'
     | '/admin/blog'
     | '/admin/depoimentos'
     | '/admin/leads'
@@ -206,7 +206,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/politica-de-privacidade'
     | '/sobre'
-    | '/universal-simplifica'
+    | '/universal-facilita'
     | '/admin/blog'
     | '/admin/depoimentos'
     | '/admin/leads'
@@ -225,17 +225,17 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   SobreRoute: typeof SobreRoute
-  UniversalSimplificaRoute: typeof UniversalSimplificaRoute
+  UniversalFacilitaRoute: typeof UniversalFacilitaRoute
   EmpreendimentoIdRoute: typeof EmpreendimentoIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/universal-simplifica': {
-      id: '/universal-simplifica'
-      path: '/universal-simplifica'
-      fullPath: '/universal-simplifica'
-      preLoaderRoute: typeof UniversalSimplificaRouteImport
+    '/universal-facilita': {
+      id: '/universal-facilita'
+      path: '/universal-facilita'
+      fullPath: '/universal-facilita'
+      preLoaderRoute: typeof UniversalFacilitaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sobre': {
@@ -376,7 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   SobreRoute: SobreRoute,
-  UniversalSimplificaRoute: UniversalSimplificaRoute,
+  UniversalFacilitaRoute: UniversalFacilitaRoute,
   EmpreendimentoIdRoute: EmpreendimentoIdRoute,
 }
 export const routeTree = rootRouteImport
