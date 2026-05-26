@@ -28,7 +28,7 @@ export default function Navbar() {
         className={`fixed top-0 z-50 w-full transition-all duration-300 ${
           navIsWhite
             ? "border-b border-[#123AAA]/10 bg-white py-3 shadow-lg"
-            : "border-b border-white/10 bg-white/15 py-5 backdrop-blur-sm sm:py-6"
+            : "border-b border-white/10 bg-white/40 py-5 backdrop-blur-sm sm:py-6"
         }`}
       >
         <div className="container relative mx-auto flex items-center justify-between px-5 sm:px-6">
