@@ -5,7 +5,7 @@
   "type": "module",
 "scripts": {
   "dev": "vite dev",
-  "build": "tanstack-start build",
+  "build": "vinxi build",
   "start": "node .output/server/index.mjs",
   "lint": "eslint .",
   "format": "prettier --write ."
