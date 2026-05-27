@@ -47,7 +47,7 @@ function Contato() {
     }
 
     setSending(true);
-    const response = await fetch("/api/send-lead-to-cvcrm", {
+    const response = await fetch("https://ftalrdptjbzmpxjgbzpq.supabase.co/functions/v1/rapid-responder", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
