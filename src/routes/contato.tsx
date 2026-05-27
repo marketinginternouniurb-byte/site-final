@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
-import { supabase } from "@/integrations/supabase/client";
+
 import { toast } from "sonner";
 
 const contact = {
@@ -34,7 +34,7 @@ const infos = [
 ];
 
 function Contato() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+    const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", origin: "Site" });
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -47,17 +47,20 @@ function Contato() {
     }
 
     setSending(true);
-    const { error } = await supabase.from("leads").insert({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      message: form.message,
+    const response = await fetch("/api/send-lead-to-cvcrm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
     });
-    setSending(false);
-    if (error) {
-      toast.error("Erro ao enviar mensagem. Tente novamente.");
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast.error(data.details || "Erro ao enviar mensagem. Tente novamente.");
+      setSending(false);
       return;
     }
+    // Antiga lógica de erro do Supabase removida, pois a Edge Function lida com isso.
+    // O erro agora é tratado no bloco `if (!response.ok)` acima.
     toast.success("Mensagem enviada! Em breve entraremos em contato.");
     setForm({ name: "", email: "", phone: "", message: "" });
     setAcceptedPrivacy(false);
