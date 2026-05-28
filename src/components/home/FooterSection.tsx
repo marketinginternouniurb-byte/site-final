@@ -17,14 +17,34 @@ export default function FooterSection() {
     }
 
     setSending(true);
-    const { error } = await supabase.from("newsletter_subscribers").insert({ email });
-    setSending(false);
+    try {
+      const [newsletterResult, cvcrmResult] = await Promise.all([
+        supabase.from("newsletter_subscribers").insert({ email }),
+        fetch("/api/send-lead-to-cvcrm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "Lead newsletter",
+            email,
+            origin: "Site - Newsletter",
+            conversion: "Newsletter",
+            page: "/",
+            message: "Cadastro para receber novidades e lancamentos.",
+          }),
+        }),
+      ]);
 
-    if (error) {
+      if (newsletterResult.error || !cvcrmResult.ok) {
+        throw new Error("Newsletter ou CVCRM falhou.");
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar newsletter:", error);
+      setSending(false);
       alert("Não foi possível concluir sua inscrição. Tente novamente.");
       return;
     }
 
+    setSending(false);
     alert("Inscrição realizada com sucesso!");
     setEmail("");
     setAcceptedPrivacy(false);

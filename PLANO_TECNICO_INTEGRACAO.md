@@ -31,7 +31,7 @@ Enviar dados de formulários do site (cadastro de e-mail, interesse em empreendi
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ 1. Valida dados recebidos                            │   │
 │  │ 2. Mapeia campos para formato CVCRM                  │   │
-│  │ 3. Autentica com Bearer Token                        │   │
+│  │ 3. Autentica com headers email e token               │   │
 │  │ 4. Envia POST para API CVCRM                         │   │
 │  │ 5. Retorna resposta ao frontend                      │   │
 │  └──────────────────────────────────────────────────────┘   │
@@ -40,7 +40,7 @@ Enviar dados de formulários do site (cadastro de e-mail, interesse em empreendi
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  CVCRM API (universal.cvcrm.com.br)         │
-│          POST /api/v3/prospeccao/leads                      │
+│          POST /api/v1/comercial/leads                       │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ Cria novo lead no sistema CVCRM                      │   │
 │  │ Armazena: nome, email, telefone, origem, mensagem    │   │
@@ -53,8 +53,9 @@ Enviar dados de formulários do site (cadastro de e-mail, interesse em empreendi
 #### 1. Configuração de Ambiente
 - **Arquivo:** `.env`
 - **Variáveis:**
-  - `VITE_CVCRM_API_TOKEN`: Token de autenticação do CVCRM
-  - `VITE_CVCRM_SUBDOMAIN`: Subdomínio do CVCRM (`universal`)
+  - `CVCRM_EMAIL`: e-mail do usuario de integracao do CVCRM
+  - `CVCRM_TOKEN`: token de integracao do CVCRM
+  - `CVCRM_DOMAIN`: dominio do cliente no CVCRM (`universal`)
 
 #### 2. Supabase Edge Function
 - **Arquivo:** `supabase/functions/send-lead-to-cvcrm/index.ts`
@@ -62,8 +63,8 @@ Enviar dados de formulários do site (cadastro de e-mail, interesse em empreendi
   - Recebe dados do formulário via POST
   - Valida campos obrigatórios (nome, email, telefone, origem)
   - Mapeia dados para o formato esperado pela API CVCRM
-  - Autentica com Bearer Token
-  - Envia requisição POST para `https://universal.cvcrm.com.br/api/v3/prospeccao/leads`
+  - Autentica com headers `email` e `token`
+  - Envia requisicao POST para `https://universal.cvcrm.com.br/api/v1/comercial/leads`
   - Retorna resposta com sucesso ou erro
 
 #### 3. Modificação do Formulário de Contato
@@ -86,8 +87,9 @@ Enviar dados de formulários do site (cadastro de e-mail, interesse em empreendi
 
 2. **Configurar Variáveis de Ambiente no Supabase:**
    ```bash
-   supabase secrets set CVCRM_API_TOKEN="sua-token-aqui"
-   supabase secrets set CVCRM_SUBDOMAIN="universal"
+   wrangler secret put CVCRM_EMAIL
+   wrangler secret put CVCRM_TOKEN
+   wrangler secret put CVCRM_DOMAIN
    ```
 
 3. **Deploy da Edge Function:**
@@ -416,8 +418,9 @@ site-final/
 
 ```env
 # CVCRM
-VITE_CVCRM_API_TOKEN=<sua-token-aqui>
-VITE_CVCRM_SUBDOMAIN=universal
+CVCRM_EMAIL=<email-integracao>
+CVCRM_TOKEN=<sua-token-aqui>
+CVCRM_DOMAIN=universal
 
 # OpenAI (Fase 4)
 VITE_OPENAI_API_KEY=<sua-chave-aqui>
