@@ -5,7 +5,7 @@
   "type": "module",
 "scripts": {
   "dev": "vite dev",
-  "build": "vite build",
+    "build": "VITE_SUPABASE_URL=https://ftalrdptjbzmpxjgbzpq.supabase.co VITE_SUPABASE_ANON_KEY=sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z vite build",
   "start": "node .output/server/index.mjs",
   "lint": "eslint .",
   "format": "prettier --write ."
