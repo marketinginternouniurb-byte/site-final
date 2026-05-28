@@ -97,14 +97,24 @@ function ProjectDetails() {
         console.error("Erro ao buscar dados do CVCRM:", e);
       }
 
-      if (!dbError) {
+      if (!dbError || cvData) {
+        const baseData = dbData || {};
+        const cvProject = cvData?.project || {};
+        
         // Mesclar dados do banco local com os dados em tempo real do CVCRM
         setProject({
-          ...dbData,
-          lotes_disponiveis: cvData?.stats?.available ?? dbData.lotes_disponiveis,
-          lotes_totais: cvData?.stats?.total ?? dbData.lotes_totais,
+          ...baseData,
+          id: baseData.id || cvProject.idempreendimento,
+          title: cvProject.nome || baseData.title,
+          status: cvProject.situacao || baseData.status,
+          location: cvProject.cidade || baseData.location,
+          description: cvProject.descricao || baseData.description,
+          image_url: cvProject.foto_destaque || baseData.image_url,
+          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []),
+          lotes_disponiveis: cvData?.stats?.available ?? baseData.lotes_disponiveis,
+          lotes_totais: cvData?.stats?.total ?? baseData.lotes_totais,
           unidades: cvData?.units ?? [],
-          cv_project: cvData?.project ?? {}
+          cv_id: cvProject.idempreendimento || "2" // Fallback para ID 2 conforme solicitado
         });
       }
 
@@ -290,18 +300,19 @@ function ProjectDetails() {
               </div>
 
               {/* Seção de Mapa 3D e Agendamento */}
-              {project.id === '2' && (
+              {(project.cv_id || project.id === '2' || project.id === '52dc56a8-5281-45b0-957b-7dfcc2293364') && (
                 <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
                   <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
                     <MapPin size={16} className="text-[#FFD700]" />
                     Mapa Interativo e Disponibilidade
                   </h3>
                   
-                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
                     <iframe 
-                      src={`https://universal.cvcrm.com.br/mapa-disponibilidade/2`} 
+                      src={`https://universal.cvcrm.com.br/mapa-disponibilidade/${project.cv_id || '2'}`} 
                       className="w-full h-full border-none"
-                      title="Mapa 3D"
+                      title="Mapa 3D de Disponibilidade"
+                      allowFullScreen
                     />
                   </div>
 

@@ -17,29 +17,36 @@ export default function ExpansionSection() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data: dbData, error } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
-      
-      if (!error && dbData) {
-        // Buscar disponibilidade em tempo real para cada empreendimento
-        const updatedProjects = await Promise.all(dbData.map(async (p) => {
-          try {
-            const { data: cvData } = await supabase.functions.invoke('sync-projects', {
-              method: 'GET',
-              queries: { id: p.id === '2' ? '2' : p.id }
-            });
-            if (cvData) {
-              return {
-                ...p,
-                lotes_disponiveis: cvData.stats?.available ?? p.lotes_disponiveis,
-                lotes_totais: cvData.stats?.total ?? p.lotes_totais
-              };
-            }
-          } catch (e) {
-            console.error("Erro ao sincronizar projeto:", p.id, e);
-          }
-          return p;
-        }));
-        setProjects(updatedProjects);
+      try {
+        // 1. Buscar TODOS os empreendimentos diretamente do CVCRM
+        const { data: cvProjects, error: cvError } = await supabase.functions.invoke('sync-projects', {
+          method: 'GET',
+          queries: { id: 'all' }
+        });
+
+        if (!cvError && cvProjects) {
+          // 2. Mapear dados do CVCRM para o formato do site
+          const mappedProjects = cvProjects.map((p: any) => ({
+            id: p.idempreendimento,
+            title: p.nome,
+            location: p.cidade || "Cariacica - ES",
+            status: p.situacao || "Lançamento",
+            image_url: p.foto_destaque || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop",
+            lotes_totais: p.unidades_totais || 0,
+            lotes_disponiveis: p.unidades_disponiveis || 0,
+            progresso_agua: 100, // Dados que podem vir do CVCRM futuramente
+            progresso_saneamento: 100,
+            progresso_pavimentacao: 100,
+            progresso_energia: 100,
+          }));
+          setProjects(mappedProjects);
+        } else {
+          // Fallback para o banco local se a API falhar
+          const { data: dbData } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
+          if (dbData) setProjects(dbData);
+        }
+      } catch (e) {
+        console.error("Erro ao buscar projetos do CVCRM:", e);
       }
       setLoading(false);
     };

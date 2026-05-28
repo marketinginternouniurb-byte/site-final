@@ -4,8 +4,9 @@ import type { Database } from './types';
 
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  // Tenta buscar de múltiplas fontes para garantir funcionamento no Worker e Build
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (globalThis as any).VITE_SUPABASE_URL || (globalThis as any).process?.env?.VITE_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (globalThis as any).VITE_SUPABASE_ANON_KEY || (globalThis as any).process?.env?.VITE_SUPABASE_ANON_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     const missing = [
