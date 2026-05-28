@@ -3,7 +3,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
-
 import { toast } from "sonner";
 
 const contact = {
@@ -34,7 +33,7 @@ const infos = [
 ];
 
 function Contato() {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", origin: "Site" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", origin: "Site" });
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -47,23 +46,25 @@ function Contato() {
     }
 
     setSending(true);
-    const response = await fetch("https://ftalrdptjbzmpxjgbzpq.supabase.co/functions/v1/rapid-responder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await response.json();
+    try {
+      const response = await fetch("https://ftalrdptjbzmpxjgbzpq.supabase.co/functions/v1/rapid-responder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    if (!response.ok) {
-      toast.error(data.details || "Erro ao enviar mensagem. Tente novamente.");
+      if (!response.ok) {
+        throw new Error("Erro ao enviar mensagem.");
+      }
+
+      toast.success("Mensagem enviada! Em breve entraremos em contato.");
+      setForm({ name: "", email: "", phone: "", message: "", origin: "Site" });
+      setAcceptedPrivacy(false);
+    } catch (error) {
+      toast.error("Erro ao enviar mensagem. Tente novamente.");
+    } finally {
       setSending(false);
-      return;
     }
-    // Antiga lógica de erro do Supabase removida, pois a Edge Function lida com isso.
-    // O erro agora é tratado no bloco `if (!response.ok)` acima.
-    toast.success("Mensagem enviada! Em breve entraremos em contato.");
-    setForm({ name: "", email: "", phone: "", message: "" });
-    setAcceptedPrivacy(false);
   };
 
   return (
