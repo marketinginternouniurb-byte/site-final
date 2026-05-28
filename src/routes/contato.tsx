@@ -47,6 +47,7 @@ function Contato() {
 
     setSending(true);
     try {
+      // ENDPOINT CORRIGIDO PARA A EDGE FUNCTION
       const response = await fetch("https://ftalrdptjbzmpxjgbzpq.supabase.co/functions/v1/rapid-responder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -54,13 +55,14 @@ function Contato() {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao enviar mensagem.");
+        throw new Error("Erro na resposta do servidor.");
       }
 
       toast.success("Mensagem enviada! Em breve entraremos em contato.");
       setForm({ name: "", email: "", phone: "", message: "", origin: "Site" });
       setAcceptedPrivacy(false);
     } catch (error) {
+      console.error("Erro no envio:", error);
       toast.error("Erro ao enviar mensagem. Tente novamente.");
     } finally {
       setSending(false);
