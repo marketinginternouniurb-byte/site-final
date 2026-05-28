@@ -17,8 +17,30 @@ export default function ExpansionSection() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data, error } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
-      if (!error && data) setProjects(data);
+      const { data: dbData, error } = await supabase.from("properties").select("*").order("created_at", { ascending: false });
+      
+      if (!error && dbData) {
+        // Buscar disponibilidade em tempo real para cada empreendimento
+        const updatedProjects = await Promise.all(dbData.map(async (p) => {
+          try {
+            const { data: cvData } = await supabase.functions.invoke('sync-projects', {
+              method: 'GET',
+              queries: { id: p.id === '2' ? '2' : p.id }
+            });
+            if (cvData) {
+              return {
+                ...p,
+                lotes_disponiveis: cvData.stats?.available ?? p.lotes_disponiveis,
+                lotes_totais: cvData.stats?.total ?? p.lotes_totais
+              };
+            }
+          } catch (e) {
+            console.error("Erro ao sincronizar projeto:", p.id, e);
+          }
+          return p;
+        }));
+        setProjects(updatedProjects);
+      }
       setLoading(false);
     };
     fetchProjects();

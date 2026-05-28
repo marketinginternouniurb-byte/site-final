@@ -78,14 +78,34 @@ function ProjectDetails() {
     const fetchProjectData = async () => {
       setLoading(true);
 
-      const { data, error } = await supabase
+      // 1. Buscar dados básicos do Supabase (para manter compatibilidade com o que já existe)
+      const { data: dbData, error: dbError } = await supabase
         .from('properties')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (!error) {
-        setProject(data);
+      // 2. Buscar dados em tempo real do CVCRM via Edge Function
+      let cvData = null;
+      try {
+        const { data: funcData, error: funcError } = await supabase.functions.invoke('sync-projects', {
+          method: 'GET',
+          queries: { id: id === '2' ? '2' : id } // Usando ID 2 como fallback/exemplo real
+        });
+        if (!funcError) cvData = funcData;
+      } catch (e) {
+        console.error("Erro ao buscar dados do CVCRM:", e);
+      }
+
+      if (!dbError) {
+        // Mesclar dados do banco local com os dados em tempo real do CVCRM
+        setProject({
+          ...dbData,
+          lotes_disponiveis: cvData?.stats?.available ?? dbData.lotes_disponiveis,
+          lotes_totais: cvData?.stats?.total ?? dbData.lotes_totais,
+          unidades: cvData?.units ?? [],
+          cv_project: cvData?.project ?? {}
+        });
       }
 
       setLoading(false);
@@ -268,6 +288,48 @@ function ProjectDetails() {
                   />
                 </div>
               </div>
+
+              {/* Seção de Mapa 3D e Agendamento */}
+              {project.id === '2' && (
+                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
+                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
+                    <MapPin size={16} className="text-[#FFD700]" />
+                    Mapa Interativo e Disponibilidade
+                  </h3>
+                  
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                    <iframe 
+                      src={`https://universal.cvcrm.com.br/mapa-disponibilidade/2`} 
+                      className="w-full h-full border-none"
+                      title="Mapa 3D"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[#123AAA]/60">
+                      Selecione um lote disponível para agendar visita:
+                    </label>
+                    <select 
+                      className="w-full p-4 rounded-xl border-2 border-[#123AAA]/10 bg-slate-50 font-bold text-[#123AAA] text-sm focus:border-[#FFD700] outline-none transition-all"
+                      onChange={(e) => {
+                        const lote = e.target.value;
+                        if (lote) {
+                          window.open(`https://wa.me/552728880001?text=${encodeURIComponent(
+                            `Olá! Tenho interesse em agendar uma visita para o lote ${lote} no empreendimento ${project.title}`
+                          )}`, '_blank');
+                        }
+                      }}
+                    >
+                      <option value="">Ver lotes disponíveis...</option>
+                      {project.unidades?.filter((u: any) => u.status === "Disponível").map((u: any) => (
+                        <option key={u.id} value={u.label}>
+                          {u.label} - Disponível
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
