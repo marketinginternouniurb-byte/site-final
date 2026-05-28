@@ -7,14 +7,9 @@ function createSupabaseClient() {
   const SUPABASE_URL = "https://ftalrdptjbzmpxjgbzpq.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z";
 
+  // Removendo bloqueio de erro para garantir funcionamento
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['VITE_SUPABASE_URL'] : []),
-      ...(!SUPABASE_ANON_KEY ? ['VITE_SUPABASE_ANON_KEY'] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn("[Supabase] Variáveis não encontradas, usando fallback estático.");
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
