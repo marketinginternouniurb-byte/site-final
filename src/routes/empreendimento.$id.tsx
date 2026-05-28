@@ -269,6 +269,33 @@ function ProjectDetails() {
                 </div>
               )}
 
+              {/* Galeria de Fotos Dinâmica */}
+              {project.gallery && project.gallery.length > 0 && (
+                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
+                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
+                    <Building2 size={16} className="text-[#FFD700]" />
+                    Galeria do Empreendimento
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {project.gallery.map((item: any, idx: number) => {
+                      const imgUrl = typeof item === 'string' ? item : (item.url || item.arquivo || item.foto);
+                      if (!imgUrl) return null;
+                      return (
+                        <div key={idx} className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer" onClick={() => window.open(imgUrl, '_blank')}>
+                          <img 
+                            src={imgUrl} 
+                            alt={`Foto ${idx + 1}`} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
                 <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
                   <HardHat size={16} className="text-[#FFD700]" />
