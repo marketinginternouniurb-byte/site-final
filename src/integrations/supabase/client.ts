@@ -3,10 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 function createSupabaseClient() {
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Tenta buscar de múltiplas fontes para garantir funcionamento no Worker e Build
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (globalThis as any).VITE_SUPABASE_URL || (globalThis as any).process?.env?.VITE_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (globalThis as any).VITE_SUPABASE_ANON_KEY || (globalThis as any).process?.env?.VITE_SUPABASE_ANON_KEY;
+  // Inserindo chaves diretamente para garantir funcionamento imediato no Cloudflare
+  const SUPABASE_URL = "https://ftalrdptjbzmpxjgbzpq.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z";
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     const missing = [
