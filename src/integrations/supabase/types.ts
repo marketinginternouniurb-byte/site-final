@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -159,6 +157,7 @@ export type Database = {
           area: string | null
           created_at: string
           created_by: string | null
+          cvcrm_url: string | null
           description: string | null
           featured: boolean
           features: string[]
@@ -168,6 +167,7 @@ export type Database = {
           location: string
           map_url: string | null
           name: string
+          planta_url: string | null
           price: string
           price_value: number
           status: Database["public"]["Enums"]["property_status"]
@@ -178,6 +178,7 @@ export type Database = {
           area?: string | null
           created_at?: string
           created_by?: string | null
+          cvcrm_url?: string | null
           description?: string | null
           featured?: boolean
           features?: string[]
@@ -187,6 +188,7 @@ export type Database = {
           location: string
           map_url?: string | null
           name: string
+          planta_url?: string | null
           price: string
           price_value?: number
           status?: Database["public"]["Enums"]["property_status"]
@@ -197,6 +199,7 @@ export type Database = {
           area?: string | null
           created_at?: string
           created_by?: string | null
+          cvcrm_url?: string | null
           description?: string | null
           featured?: boolean
           features?: string[]
@@ -206,6 +209,7 @@ export type Database = {
           location?: string
           map_url?: string | null
           name?: string
+          planta_url?: string | null
           price?: string
           price_value?: number
           status?: Database["public"]["Enums"]["property_status"]
@@ -277,7 +281,12 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_staff: {
+        Args: {
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "corretor"
