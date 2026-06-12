@@ -10,7 +10,6 @@ export default function PageShell({ children }: PageShellProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Esconde o botão nativo do Typebot (offscreen)
     const style = document.createElement("style");
     style.innerHTML = `
       typebot-bubble {
@@ -30,10 +29,6 @@ export default function PageShell({ children }: PageShellProps) {
       Typebot.initBubble({
         typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-r5u6gcg',
         apiHost: 'https://typebot.co',
-        previewMessage: {
-          message: 'Olá! Posso te ajudar a encontrar o lote ideal 😊',
-          autoShowDelay: 4000,
-        },
         theme: {
           button: {
             backgroundColor: 'transparent',
@@ -41,6 +36,7 @@ export default function PageShell({ children }: PageShellProps) {
           },
         },
       });
+      window.__openTypebot = () => Typebot.open();
     `;
     document.body.appendChild(script);
 
@@ -54,14 +50,7 @@ export default function PageShell({ children }: PageShellProps) {
   }, []);
 
   const handleOpen = () => {
-    const typebotEl = document.querySelector('typebot-bubble') as HTMLElement & { shadowRoot: ShadowRoot };
-    if (typebotEl?.shadowRoot) {
-      const btn = typebotEl.shadowRoot.querySelector('button');
-      if (btn) {
-        (typebotEl as HTMLElement).style.cssText = '';
-        btn.click();
-      }
-    }
+    (window as any).__openTypebot?.();
   };
 
   return (
@@ -84,7 +73,6 @@ export default function PageShell({ children }: PageShellProps) {
             filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))',
           }}
         >
-          {/* Mascote grande à esquerda, elevado */}
           <img
             src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
             alt="Lotti"
@@ -98,7 +86,6 @@ export default function PageShell({ children }: PageShellProps) {
             }}
           />
 
-          {/* Container amarelo */}
           <div style={{
             backgroundColor: '#F5C400',
             borderRadius: '50px',
@@ -109,7 +96,6 @@ export default function PageShell({ children }: PageShellProps) {
             border: '3px solid #1B3FA0',
             minWidth: '185px',
           }}>
-            {/* Ícone balão azul */}
             <div style={{
               backgroundColor: '#1B3FA0',
               borderRadius: '50%',
@@ -121,14 +107,9 @@ export default function PageShell({ children }: PageShellProps) {
               flexShrink: 0,
             }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
-                  fill="#F5C400"
-                />
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#F5C400"/>
               </svg>
             </div>
-
-            {/* Texto */}
             <div>
               <div style={{
                 color: '#1B3FA0',
