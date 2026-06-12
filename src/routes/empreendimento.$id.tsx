@@ -23,6 +23,9 @@ export const Route = createFileRoute('/empreendimento/$id')({
   component: ProjectDetails,
 });
 
+const FALLBACK_PROJECT_IMAGE =
+  "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop";
+
 function getYouTubeId(input?: string | null) {
   if (!input) return null;
 
@@ -115,6 +118,47 @@ function isAvailableUnit(unit: any) {
   );
 }
 
+function isManualMapImage(url?: string | null) {
+  if (!url) return false;
+
+  const value = url.toLowerCase();
+  return (
+    value.includes("/plantas/") ||
+    value.includes("cvcrm-mapa") ||
+    value.includes("planta-") ||
+    value.includes("mapa-")
+  );
+}
+
+function getImageUrlFromValue(value: any): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+
+  return (
+    value.url ||
+    value.foto ||
+    value.imagem ||
+    value.arquivo ||
+    value.caminho ||
+    value.link ||
+    null
+  );
+}
+
+function getCvcrmProjectImage(cvProject: any, gallery: any[] = []) {
+  const direct =
+    cvProject?.foto_destaque ||
+    cvProject?.foto ||
+    cvProject?.imagem ||
+    cvProject?.imagem_principal ||
+    cvProject?.url_foto ||
+    cvProject?.foto_url ||
+    cvProject?.capa ||
+    cvProject?.banner;
+
+  return getImageUrlFromValue(direct) || getImageUrlFromValue(gallery[0]);
+}
+
 function ProjectDetails() {
   const { id } = useParams({ from: '/empreendimento/$id' });
   const [project, setProject] = useState<any>(null);
@@ -150,6 +194,11 @@ function ProjectDetails() {
       if (!dbError || cvData) {
         const baseData = dbData || {};
         const cvProject = cvData?.project || {};
+        const gallery = cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []);
+        const cvcrmImage = getCvcrmProjectImage(cvProject, gallery);
+        const dbImage = isManualMapImage(baseData.image_url) ? null : baseData.image_url;
+        const manualMapImage =
+          baseData.planta_url || (isManualMapImage(baseData.image_url) ? baseData.image_url : null);
         
         // Mesclar dados do banco local com os dados em tempo real do CVCRM
         setProject({
@@ -159,10 +208,10 @@ function ProjectDetails() {
           status: cvProject.situacao || baseData.status,
           location: cvProject.cidade || baseData.location,
           description: cvProject.descricao || baseData.description,
-          image_url: cvProject.foto_destaque || baseData.image_url,
-          planta_url: baseData.planta_url,
+          image_url: cvcrmImage || dbImage || FALLBACK_PROJECT_IMAGE,
+          planta_url: manualMapImage,
           cvcrm_url: baseData.cvcrm_url,
-          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []),
+          gallery,
           lotes_disponiveis: cvData?.stats?.available ?? baseData.lotes_disponiveis,
           lotes_totais: cvData?.stats?.total ?? baseData.lotes_totais,
           unidades: cvData?.units ?? [],
@@ -394,7 +443,7 @@ function ProjectDetails() {
                 <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
                   <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
                     <MapPin size={16} className="text-[#FFD700]" />
-                    Mapa Interativo e Disponibilidade
+                    Mapa 3D de Disponibilidades
                   </h3>
                   
                   <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">

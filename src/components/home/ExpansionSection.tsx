@@ -58,6 +58,47 @@ const LEGACY_PROJECTS = [
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop";
 
+function isManualMapImage(url?: string | null) {
+  if (!url) return false;
+
+  const value = url.toLowerCase();
+  return (
+    value.includes("/plantas/") ||
+    value.includes("cvcrm-mapa") ||
+    value.includes("planta-") ||
+    value.includes("mapa-")
+  );
+}
+
+function getImageUrlFromValue(value: any): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+
+  return (
+    value.url ||
+    value.foto ||
+    value.imagem ||
+    value.arquivo ||
+    value.caminho ||
+    value.link ||
+    null
+  );
+}
+
+function getCvcrmProjectImage(cvProject: any, gallery: any[] = []) {
+  const direct =
+    cvProject?.foto_destaque ||
+    cvProject?.foto ||
+    cvProject?.imagem ||
+    cvProject?.imagem_principal ||
+    cvProject?.url_foto ||
+    cvProject?.foto_url ||
+    cvProject?.capa ||
+    cvProject?.banner;
+
+  return getImageUrlFromValue(direct) || getImageUrlFromValue(gallery[0]);
+}
+
 function getCvcrmId(input?: string | null) {
   if (!input) return null;
 
@@ -85,6 +126,9 @@ function normalizeProject(p: any) {
   const status = rawStatus.toLowerCase().includes("venda")
     ? "PRE-LANCAMENTO"
     : rawStatus;
+  const dbImage = isManualMapImage(p.image_url || p.image)
+    ? ""
+    : p.image_url || p.image || "";
 
   return {
     ...p,
@@ -93,8 +137,11 @@ function normalizeProject(p: any) {
     location: p.area || p.location || "Cariacica - ES",
     area: p.area || p.location || "Cariacica - ES",
     status,
-    image_url: p.image_url || p.image || FALLBACK_IMAGE,
-    planta_url: p.planta_url || p.map_image_url || "",
+    image_url: dbImage || FALLBACK_IMAGE,
+    planta_url:
+      p.planta_url ||
+      p.map_image_url ||
+      (isManualMapImage(p.image_url || p.image) ? p.image_url || p.image : ""),
     cvcrm_url: p.cvcrm_url || "",
     cvcrm_id: p.cvcrm_id || getCvcrmId(p.cvcrm_url),
     lotes_totais: p.lotes_totais || 0,
@@ -117,8 +164,15 @@ async function enrichAvailability(project: any) {
 
     if (error || !data) return project;
 
+    const cvcrmImage = getCvcrmProjectImage(data.project, data.gallery || []);
+
     return {
       ...project,
+      title: data.project?.nome || project.title,
+      status: data.project?.situacao || project.status,
+      location: data.project?.cidade || project.location,
+      area: project.area || data.project?.cidade || project.location,
+      image_url: cvcrmImage || project.image_url,
       lotes_totais: data.stats?.total ?? project.lotes_totais,
       lotes_disponiveis: data.stats?.available ?? project.lotes_disponiveis,
     };

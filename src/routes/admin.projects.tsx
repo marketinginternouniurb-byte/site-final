@@ -24,6 +24,18 @@ const EMPTY_FORM = {
   progresso_energia: 0,
 };
 
+function isManualMapImage(url?: string | null) {
+  if (!url) return false;
+
+  const value = url.toLowerCase();
+  return (
+    value.includes("/plantas/") ||
+    value.includes("cvcrm-mapa") ||
+    value.includes("planta-") ||
+    value.includes("mapa-")
+  );
+}
+
 function getCvcrmId(input?: string | null) {
   if (!input) return null;
 
@@ -135,10 +147,12 @@ function AdminProjects() {
 
     try {
       const availability = await getCvcrmAvailability(formData.cvcrm_url);
+      const imageUrlIsMap = isManualMapImage(formData.image_url);
 
       const payload: any = {
         ...formData,
-        planta_url: formData.planta_url || null,
+        image_url: imageUrlIsMap ? null : formData.image_url || null,
+        planta_url: formData.planta_url || (imageUrlIsMap ? formData.image_url : null),
         cvcrm_url: formData.cvcrm_url || null,
         video_url: formData.video_url || null,
         ...(availability || {}),
@@ -355,10 +369,9 @@ function AdminProjects() {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase text-[#123AAA] ml-2">
-                  URL da Imagem Principal
+                  URL da Imagem Principal (fallback se o CVCRM nao enviar foto)
                 </label>
                 <input
-                  required
                   placeholder="https://..."
                   value={formData.image_url}
                   onChange={(e) =>
@@ -491,7 +504,13 @@ function AdminProjects() {
                     <button
                       onClick={() => {
                         setIsEditing(p.id);
-                        setFormData({ ...EMPTY_FORM, ...p });
+                        const imageUrlIsMap = isManualMapImage(p.image_url);
+                        setFormData({
+                          ...EMPTY_FORM,
+                          ...p,
+                          image_url: imageUrlIsMap ? "" : p.image_url || "",
+                          planta_url: p.planta_url || (imageUrlIsMap ? p.image_url : ""),
+                        });
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       className="flex-1 py-4 bg-[#123AAA] text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-800 transition-all cursor-pointer border-none"
