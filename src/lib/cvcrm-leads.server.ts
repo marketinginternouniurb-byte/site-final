@@ -1,7 +1,10 @@
 type CvcrmEnv = {
   CVCRM_EMAIL?: string;
+  CVCRM_API_EMAIL?: string;
   CVCRM_TOKEN?: string;
+  CVCRM_API_TOKEN?: string;
   CVCRM_DOMAIN?: string;
+  CVCRM_SUBDOMAIN?: string;
   CVCRM_BASE_URL?: string;
   CVCRM_ORIGEMCV?: string;
   LEAD_ALLOWED_ORIGINS?: string;
@@ -291,8 +294,9 @@ function buildCvcrmUrl(env: CvcrmEnv): string | undefined {
     return `${env.CVCRM_BASE_URL.replace(/\/$/, "")}/api/v1/comercial/leads`;
   }
 
-  if (env.CVCRM_DOMAIN) {
-    return `https://${env.CVCRM_DOMAIN}.cvcrm.com.br/api/v1/comercial/leads`;
+  const cvcrmDomain = cleanText(env.CVCRM_DOMAIN) ?? cleanText(env.CVCRM_SUBDOMAIN);
+  if (cvcrmDomain) {
+    return `https://${cvcrmDomain}.cvcrm.com.br/api/v1/comercial/leads`;
   }
 
   return undefined;
@@ -417,7 +421,9 @@ export async function handleCvcrmLeadRequest(request: Request, envInput: unknown
   }
 
   const cvcrmUrl = buildCvcrmUrl(env);
-  if (!cvcrmUrl || !env.CVCRM_EMAIL || !env.CVCRM_TOKEN) {
+  const cvcrmEmail = cleanText(env.CVCRM_EMAIL) ?? cleanText(env.CVCRM_API_EMAIL);
+  const cvcrmToken = cleanText(env.CVCRM_TOKEN) ?? cleanText(env.CVCRM_API_TOKEN);
+  if (!cvcrmUrl || !cvcrmEmail || !cvcrmToken) {
     logLeadEvent("missing_cvcrm_credentials", request, requestId, payload);
     return Response.json(
       { error: "Credenciais CVCRM nao configuradas no ambiente." },
@@ -433,8 +439,8 @@ export async function handleCvcrmLeadRequest(request: Request, envInput: unknown
         method: "POST",
         headers: {
           "content-type": "application/json",
-          email: env.CVCRM_EMAIL,
-          token: env.CVCRM_TOKEN,
+          email: cvcrmEmail,
+          token: cvcrmToken,
           ...(env.CVCRM_ORIGEMCV ? { origemcv: env.CVCRM_ORIGEMCV } : {}),
         },
         body: JSON.stringify(cvcrmPayload),
