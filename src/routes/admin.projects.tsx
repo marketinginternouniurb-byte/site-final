@@ -24,6 +24,55 @@ const EMPTY_FORM = {
   progresso_energia: 0,
 };
 
+function getCvcrmId(input?: string | null) {
+  if (!input) return null;
+
+  const value = input.trim();
+  if (/^\d+$/.test(value)) return value;
+
+  try {
+    const url = new URL(value);
+    const queryId =
+      url.searchParams.get("idempreendimento") ||
+      url.searchParams.get("idEmpreendimento") ||
+      url.searchParams.get("id");
+
+    if (queryId) return queryId;
+
+    return url.pathname.split("/").filter(Boolean).at(-1) ?? null;
+  } catch {
+    const match = value.match(/\d+/);
+    return match?.[0] ?? null;
+  }
+}
+
+async function getCvcrmAvailability(cvcrmUrl?: string | null) {
+  const cvcrmId = getCvcrmId(cvcrmUrl);
+  if (!cvcrmId) return null;
+
+  const { data, error } = await supabase.functions.invoke("sync-projects", {
+    method: "POST",
+    body: { id: cvcrmId },
+  });
+
+  if (error || !data?.stats) return null;
+
+  return {
+    lotes_totais: Number(data.stats.total ?? 0),
+    lotes_disponiveis: Number(data.stats.available ?? 0),
+  };
+}
+
+async function enrichProjectWithCvcrm(project: any) {
+  const availability = await getCvcrmAvailability(project.cvcrm_url);
+  if (!availability) return project;
+
+  return {
+    ...project,
+    ...availability,
+  };
+}
+
 export const Route = createFileRoute("/admin/projects")({
   component: AdminProjects,
 });
@@ -41,7 +90,6 @@ function AdminProjects() {
 
   async function fetchProjects() {
     setLoading(true);
-
     try {
       const { data, error } = await supabase
         .from("properties")
@@ -49,7 +97,15 @@ function AdminProjects() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data) setProjects(data);
+      if (data) {
+        setProjects(data);
+
+        const enrichedProjects = await Promise.all(
+          data.map(enrichProjectWithCvcrm)
+        );
+
+        setProjects(enrichedProjects);
+      }
     } catch (error: any) {
       toast.error("Erro ao carregar: " + error.message);
     } finally {
@@ -77,14 +133,17 @@ function AdminProjects() {
     e.preventDefault();
     setSubmitting(true);
 
-    const payload: any = {
-      ...formData,
-      planta_url: formData.planta_url || null,
-      cvcrm_url: formData.cvcrm_url || null,
-      video_url: formData.video_url || null,
-    };
-
     try {
+      const availability = await getCvcrmAvailability(formData.cvcrm_url);
+
+      const payload: any = {
+        ...formData,
+        planta_url: formData.planta_url || null,
+        cvcrm_url: formData.cvcrm_url || null,
+        video_url: formData.video_url || null,
+        ...(availability || {}),
+      };
+
       if (isEditing) {
         const { error } = await supabase
           .from("properties")
@@ -211,32 +270,34 @@ function AdminProjects() {
                   required
                   placeholder="0"
                   value={formData.lotes_totais}
+                  readOnly={Boolean(getCvcrmId(formData.cvcrm_url))}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       lotes_totais: Number(e.target.value),
                     })
                   }
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-black text-lg outline-none text-[#123AAA]"
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-black text-lg outline-none text-[#123AAA] disabled:opacity-70"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase text-[#FFD700] ml-2">
-                  Disponiveis manual
+                  Disponiveis CVCRM
                 </label>
                 <input
                   type="number"
                   required
                   placeholder="0"
                   value={formData.lotes_disponiveis}
+                  readOnly={Boolean(getCvcrmId(formData.cvcrm_url))}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
                       lotes_disponiveis: Number(e.target.value),
                     })
                   }
-                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-black text-lg outline-none text-[#FFD700]"
+                  className="w-full p-4 rounded-2xl bg-gray-50 border-none font-black text-lg outline-none text-[#FFD700] disabled:opacity-70"
                 />
               </div>
             </div>
@@ -331,6 +392,23 @@ function AdminProjects() {
                   onChange={(e) =>
                     setFormData({ ...formData, cvcrm_url: e.target.value })
                   }
+                  onBlur={async () => {
+                    try {
+                      const availability = await getCvcrmAvailability(
+                        formData.cvcrm_url
+                      );
+
+                      if (availability) {
+                        setFormData((current) => ({
+                          ...current,
+                          ...availability,
+                        }));
+                        toast.success("Disponibilidade atualizada pelo CVCRM!");
+                      }
+                    } catch {
+                      toast.error("Nao foi possivel consultar o CVCRM agora.");
+                    }
+                  }}
                   className="w-full p-4 rounded-2xl bg-gray-50 border-none text-xs outline-none"
                 />
               </div>
