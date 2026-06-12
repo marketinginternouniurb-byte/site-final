@@ -11,7 +11,7 @@ export default function PageShell({ children }: PageShellProps) {
     const script = document.createElement("script");
     script.type = "module";
     script.innerHTML = `
-      import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
+      import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js?v=2';
       Typebot.initBubble({
         typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-r5u6gcg',
         apiHost: 'https://typebot.co',
@@ -101,7 +101,7 @@ export default function PageShell({ children }: PageShellProps) {
         </div>
 
         <img
-          src="/mascote-universal.png"
+          src="/mascote-universal.png?v=2"
           alt="Lotti"
           style={{
             width: "112px",
