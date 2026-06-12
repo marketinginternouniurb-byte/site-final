@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import FooterSection from "@/components/home/FooterSection";
 
@@ -15,10 +15,6 @@ export default function PageShell({ children }: PageShellProps) {
       Typebot.initBubble({
         typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-r5u6gcg',
         apiHost: 'https://typebot.co',
-        previewMessage: {
-          message: 'Olá! Posso te ajudar a encontrar o lote ideal 😊',
-          autoShowDelay: 4000,
-        },
         theme: {
           button: {
             backgroundColor: '#F5C400',
@@ -40,16 +36,50 @@ export default function PageShell({ children }: PageShellProps) {
       <main className="flex-grow">{children}</main>
       <FooterSection />
 
-      {/* Mascote fixo ao lado do botão — não interfere no Typebot */}
+      {/* Balão de fala do mascote */}
+      <div style={{
+        position: 'fixed',
+        bottom: '130px',
+        right: '100px',
+        backgroundColor: '#1B3FA0',
+        color: '#fff',
+        borderRadius: '16px 16px 4px 16px',
+        padding: '10px 14px',
+        zIndex: 9999,
+        pointerEvents: 'none',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        maxWidth: '150px',
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#F5C400', marginBottom: '4px' }}>
+          LOTTI
+        </div>
+        <div style={{ fontSize: '12px', fontWeight: 600, lineHeight: '1.4' }}>
+          Encontre seu lote ideal! 😊
+        </div>
+        {/* Ponteiro do balão */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-10px',
+          right: '20px',
+          width: 0,
+          height: 0,
+          borderLeft: '10px solid transparent',
+          borderRight: '0px solid transparent',
+          borderTop: '10px solid #1B3FA0',
+        }} />
+      </div>
+
+      {/* Mascote maior e mais acima */}
       <img
         src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
         alt="Lotti"
         style={{
           position: 'fixed',
-          bottom: '10px',
-          right: '90px',
-          width: '110px',
-          height: '110px',
+          bottom: '55px',
+          right: '85px',
+          width: '140px',
+          height: '140px',
           objectFit: 'contain',
           zIndex: 9998,
           pointerEvents: 'none',
