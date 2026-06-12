@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Navbar from "./Navbar";
 import FooterSection from "@/components/home/FooterSection";
 
@@ -18,7 +18,7 @@ export default function PageShell({ children }: PageShellProps) {
         theme: {
           button: {
             backgroundColor: '#F5C400',
-            customIconSrc: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNDAgNEg4QzUuOCA0IDQgNS44IDQgOFYzNkw0IDQ0TDEyIDM2SDQwQzQyLjIgMzYgNDQgMzQuMiA0NCAzMlY4QzQ0IDUuOCA0Mi4yIDQgNDAgNFoiIGZpbGw9IiMxQjNGQTAiLz48L3N2Zz4=',
+            customIconSrc: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMkgyQzEuNDUgMiAxIDIuNDUgMSAzVjE3QzEgMTcuNTUgMS40NSAxOCAyIDE4SDZWMjJMMTAgMThIMjBDMjAuNTUgMTggMjEgMTcuNTUgMjEgMTdWM0MyMSAyLjQ1IDIwLjU1IDIgMjAgMloiIGZpbGw9IiMxQjNGQTAiLz48L3N2Zz4=',
             size: 'large',
           },
         },
@@ -36,55 +36,56 @@ export default function PageShell({ children }: PageShellProps) {
       <main className="flex-grow">{children}</main>
       <FooterSection />
 
-      {/* Balão de fala do mascote */}
+      {/* Wrapper fixo — tudo alinhado junto no canto */}
       <div style={{
         position: 'fixed',
-        bottom: '130px',
-        right: '100px',
-        backgroundColor: '#1B3FA0',
-        color: '#fff',
-        borderRadius: '16px 16px 4px 16px',
-        padding: '10px 14px',
-        zIndex: 9999,
+        bottom: '24px',
+        right: '24px',
+        zIndex: 9998,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
         pointerEvents: 'none',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        maxWidth: '150px',
-        textAlign: 'center',
+        gap: '4px',
       }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: '#F5C400', marginBottom: '4px' }}>
-          LOTTI
-        </div>
-        <div style={{ fontSize: '12px', fontWeight: 600, lineHeight: '1.4' }}>
-          Encontre seu lote ideal! 😊
-        </div>
-        {/* Ponteiro do balão */}
+        {/* Balão de fala */}
         <div style={{
-          position: 'absolute',
-          bottom: '-10px',
-          right: '20px',
-          width: 0,
-          height: 0,
-          borderLeft: '10px solid transparent',
-          borderRight: '0px solid transparent',
-          borderTop: '10px solid #1B3FA0',
-        }} />
-      </div>
+          backgroundColor: '#1B3FA0',
+          color: '#fff',
+          borderRadius: '16px 16px 4px 16px',
+          padding: '10px 14px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          maxWidth: '160px',
+          textAlign: 'center',
+          marginRight: '10px',
+        }}>
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            color: '#F5C400',
+            marginBottom: '4px',
+          }}>
+            LOTTI
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: 600, lineHeight: '1.4' }}>
+            Encontre seu lote ideal! 😊
+          </div>
+        </div>
 
-      {/* Mascote maior e mais acima */}
-      <img
-        src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
-        alt="Lotti"
-        style={{
-          position: 'fixed',
-          bottom: '55px',
-          right: '85px',
-          width: '140px',
-          height: '140px',
-          objectFit: 'contain',
-          zIndex: 9998,
-          pointerEvents: 'none',
-        }}
-      />
+        {/* Mascote alinhado com o botão do Typebot */}
+        <img
+          src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
+          alt="Lotti"
+          style={{
+            width: '130px',
+            height: '130px',
+            objectFit: 'contain',
+            marginRight: '8px',
+          }}
+        />
+      </div>
     </div>
   );
 }
