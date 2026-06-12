@@ -1,12 +1,15 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "site-final",
+  "name": "universal-site-staging",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "vars": {
-    "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z"
+    "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+    "LEAD_RATE_LIMIT_MAX": "12",
+    "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
+    "LEAD_DRY_RUN": "true",
+    "DRY_RUN": "true"
   },
   "env": {
     "staging": {
@@ -15,6 +18,8 @@
         "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
         "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
         "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+        "LEAD_RATE_LIMIT_MAX": "12",
+        "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
         "LEAD_DRY_RUN": "true",
         "DRY_RUN": "true"
       }
