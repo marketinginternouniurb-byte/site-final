@@ -28,7 +28,6 @@ function getYouTubeId(input?: string | null) {
 
   const value = input.trim();
 
-  // Aceita o ID puro: dQw4w9WgXcQ
   if (/^[a-zA-Z0-9_-]{11}$/.test(value)) {
     return value;
   }
@@ -36,13 +35,11 @@ function getYouTubeId(input?: string | null) {
   try {
     const url = new URL(value);
 
-    // youtube.com/watch?v=ID
     const watchId = url.searchParams.get('v');
     if (watchId && /^[a-zA-Z0-9_-]{11}$/.test(watchId)) {
       return watchId;
     }
 
-    // youtu.be/ID
     if (url.hostname.includes('youtu.be')) {
       const id = url.pathname.split('/').filter(Boolean)[0];
       if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) {
@@ -50,7 +47,6 @@ function getYouTubeId(input?: string | null) {
       }
     }
 
-    // youtube.com/embed/ID, /shorts/ID, /live/ID
     const parts = url.pathname.split('/').filter(Boolean);
     const markerIndex = parts.findIndex((part) =>
       ['embed', 'shorts', 'live'].includes(part)
@@ -69,6 +65,28 @@ function getYouTubeId(input?: string | null) {
   return null;
 }
 
+function getCvcrmId(input?: string | null) {
+  if (!input) return null;
+
+  const value = input.trim();
+  if (/^\d+$/.test(value)) return value;
+
+  try {
+    const url = new URL(value);
+    const queryId =
+      url.searchParams.get('idempreendimento') ||
+      url.searchParams.get('idEmpreendimento') ||
+      url.searchParams.get('id');
+
+    if (queryId) return queryId;
+
+    return url.pathname.split('/').filter(Boolean).at(-1) ?? null;
+  } catch {
+    const match = value.match(/\d+/);
+    return match?.[0] ?? null;
+  }
+}
+
 function ProjectDetails() {
   const { id } = useParams({ from: '/empreendimento/$id' });
   const [project, setProject] = useState<any>(null);
@@ -78,30 +96,32 @@ function ProjectDetails() {
     const fetchProjectData = async () => {
       setLoading(true);
 
-      // 1. Buscar dados básicos do Supabase (para manter compatibilidade com o que já existe)
       const { data: dbData, error: dbError } = await supabase
         .from('properties')
         .select('*')
         .eq('id', id)
         .single();
 
-      // 2. Buscar dados em tempo real do CVCRM via Edge Function
       let cvData = null;
+      const cvcrmId = getCvcrmId((dbData as any)?.cvcrm_url || (dbData as any)?.cvcrm_id);
+
       try {
-        const { data: funcData, error: funcError } = await supabase.functions.invoke('sync-projects', {
-          method: 'GET',
-          queries: { id: id === '2' ? '2' : id } // Usando ID 2 como fallback/exemplo real
-        });
-        if (!funcError) cvData = funcData;
+        if (cvcrmId) {
+          const { data: funcData, error: funcError } = await supabase.functions.invoke('sync-projects', {
+            method: 'GET',
+            queries: { id: cvcrmId },
+          });
+
+          if (!funcError) cvData = funcData;
+        }
       } catch (e) {
-        console.error("Erro ao buscar dados do CVCRM:", e);
+        console.error('Erro ao buscar dados do CVCRM:', e);
       }
 
       if (!dbError || cvData) {
         const baseData = dbData || {};
         const cvProject = cvData?.project || {};
-        
-        // Mesclar dados do banco local com os dados em tempo real do CVCRM
+
         setProject({
           ...baseData,
           id: baseData.id || cvProject.idempreendimento,
@@ -110,11 +130,13 @@ function ProjectDetails() {
           location: cvProject.cidade || baseData.location,
           description: cvProject.descricao || baseData.description,
           image_url: cvProject.foto_destaque || baseData.image_url,
-          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []),
+          planta_url: baseData.planta_url,
+          cvcrm_url: baseData.cvcrm_url,
+          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : baseData.gallery || [],
           lotes_disponiveis: cvData?.stats?.available ?? baseData.lotes_disponiveis,
           lotes_totais: cvData?.stats?.total ?? baseData.lotes_totais,
           unidades: cvData?.units ?? [],
-          cv_id: cvProject.idempreendimento || "2" // Fallback para ID 2 conforme solicitado
+          cv_id: cvProject.idempreendimento || cvcrmId,
         });
       }
 
@@ -146,12 +168,22 @@ function ProjectDetails() {
     ? `https://www.youtube.com/watch?v=${youtubeId}`
     : project?.video_url;
 
+  const cvcrmMapUrl = useMemo(() => {
+    if (!project?.cv_id && !project?.cvcrm_url) return null;
+
+    if (project?.cvcrm_url && /^https?:\/\//i.test(project.cvcrm_url)) {
+      return project.cvcrm_url;
+    }
+
+    return `https://universal.cvcrm.com.br/mapa-disponibilidade/${project.cv_id || project.cvcrm_url}`;
+  }, [project?.cv_id, project?.cvcrm_url]);
+
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#FAF9F6]">
         <Loader2 className="animate-spin text-[#123AAA] mb-4" size={48} />
         <p className="text-[#123AAA] font-bold uppercase tracking-widest text-xs">
-          A carregar Ativo...
+          Carregando empreendimento...
         </p>
       </div>
     );
@@ -189,7 +221,7 @@ function ProjectDetails() {
               className="group-hover:-translate-x-1 transition-transform"
             />
             <span className="text-[10px] font-black uppercase tracking-widest">
-              Voltar aos Lançamentos
+              Voltar aos lançamentos
             </span>
           </Link>
 
@@ -237,6 +269,30 @@ function ProjectDetails() {
                   </a>
                 </div>
               )}
+
+              {project.planta_url && (
+                <div className="space-y-3">
+                  <div className="relative rounded-[40px] overflow-hidden shadow-xl border-4 border-white aspect-video w-full bg-slate-100">
+                    <img
+                      src={getOptimizedImageUrl(project.planta_url, { width: 1200, quality: 82 })}
+                      alt={`Planta do empreendimento ${project.title}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-contain bg-white"
+                    />
+                  </div>
+
+                  <a
+                    href={project.planta_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-[#123AAA] hover:text-[#0a2570] font-black uppercase tracking-widest text-[10px] no-underline"
+                  >
+                    Ver planta em tamanho real
+                    <ExternalLink size={13} />
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="space-y-8 lg:sticky lg:top-32">
@@ -269,23 +325,27 @@ function ProjectDetails() {
                 </div>
               )}
 
-              {/* Galeria de Fotos Dinâmica */}
               {project.gallery && project.gallery.length > 0 && (
                 <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
                   <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
                     <Building2 size={16} className="text-[#FFD700]" />
                     Galeria do Empreendimento
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {project.gallery.map((item: any, idx: number) => {
-                      const imgUrl = typeof item === 'string' ? item : (item.url || item.arquivo || item.foto);
+                      const imgUrl = typeof item === 'string' ? item : item.url || item.arquivo || item.foto;
                       if (!imgUrl) return null;
+
                       return (
-                        <div key={idx} className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer" onClick={() => window.open(imgUrl, '_blank')}>
-                          <img 
-                            src={imgUrl} 
-                            alt={`Foto ${idx + 1}`} 
+                        <div
+                          key={idx}
+                          className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer"
+                          onClick={() => window.open(imgUrl, '_blank')}
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`Foto ${idx + 1}`}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             loading="lazy"
                           />
@@ -326,19 +386,18 @@ function ProjectDetails() {
                 </div>
               </div>
 
-              {/* Seção de Mapa 3D e Agendamento */}
-              {(project.cv_id || project.id === '2' || project.id === '52dc56a8-5281-45b0-957b-7dfcc2293364') && (
+              {cvcrmMapUrl && (
                 <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
                   <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
                     <MapPin size={16} className="text-[#FFD700]" />
                     Mapa Interativo e Disponibilidade
                   </h3>
-                  
+
                   <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
-                    <iframe 
-                      src={`https://universal.cvcrm.com.br/mapa-disponibilidade/${project.cv_id || '2'}`} 
+                    <iframe
+                      src={cvcrmMapUrl}
                       className="w-full h-full border-none"
-                      title="Mapa 3D de Disponibilidade"
+                      title="Mapa de disponibilidade"
                       allowFullScreen
                     />
                   </div>
@@ -347,23 +406,30 @@ function ProjectDetails() {
                     <label className="text-[10px] font-black uppercase tracking-widest text-[#123AAA]/60">
                       Selecione um lote disponível para agendar visita:
                     </label>
-                    <select 
+
+                    <select
                       className="w-full p-4 rounded-xl border-2 border-[#123AAA]/10 bg-slate-50 font-bold text-[#123AAA] text-sm focus:border-[#FFD700] outline-none transition-all"
                       onChange={(e) => {
                         const lote = e.target.value;
+
                         if (lote) {
-                          window.open(`https://wa.me/552728880001?text=${encodeURIComponent(
-                            `Olá! Tenho interesse em agendar uma visita para o lote ${lote} no empreendimento ${project.title}`
-                          )}`, '_blank');
+                          window.open(
+                            `https://wa.me/552728880001?text=${encodeURIComponent(
+                              `Olá! Tenho interesse em agendar uma visita para o lote ${lote} no empreendimento ${project.title}`
+                            )}`,
+                            '_blank'
+                          );
                         }
                       }}
                     >
                       <option value="">Ver lotes disponíveis...</option>
-                      {project.unidades?.filter((u: any) => u.status === "Disponível").map((u: any) => (
-                        <option key={u.id} value={u.label}>
-                          {u.label} - Disponível
-                        </option>
-                      ))}
+                      {project.unidades
+                        ?.filter((u: any) => u.status === 'Disponível' || u.status === 'Disponivel')
+                        .map((u: any) => (
+                          <option key={u.id} value={u.label}>
+                            {u.label} - Disponível
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
@@ -416,6 +482,7 @@ function ProgressItem({
           {icon}
           {label}
         </div>
+
         <span>{value || 0}%</span>
       </div>
 
