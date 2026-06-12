@@ -65,16 +65,22 @@ function Facilita() {
         } as any,
       ]);
 
-      if (error) throw error;
-
-      const message = `Olá! Quero entrar no programa Universal Facilita. Meu nome é ${nome}, meu WhatsApp é ${whatsapp}, meu e-mail é ${email} e tenho interesse em: ${interesse}.`;
-      window.location.href = `https://wa.me/552728880001?text=${encodeURIComponent(message)}`;
+      if (error) {
+        console.warn("Lead Facilita Supabase insert skipped", {
+          code: error.code,
+          message: error.message,
+        });
+      }
     } catch (error) {
-      console.error("Erro ao salvar lead do Facilita:", error);
-      alert("Não conseguimos enviar seus dados agora. Tente novamente em instantes.");
+      console.warn("Lead Facilita Supabase insert failed", {
+        message: error instanceof Error ? error.message : "unknown",
+      });
     } finally {
       setIsSubmitting(false);
     }
+
+    const message = `Olá! Quero entrar no programa Universal Facilita. Meu nome é ${nome}, meu WhatsApp é ${whatsapp}, meu e-mail é ${email} e tenho interesse em: ${interesse}.`;
+    window.location.href = `https://wa.me/552728880001?text=${encodeURIComponent(message)}`;
   };
 
   return (

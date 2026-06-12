@@ -18,7 +18,7 @@ export default function FooterSection() {
 
     setSending(true);
     try {
-      const [newsletterResult, cvcrmResult] = await Promise.all([
+      const [newsletterResult, cvcrmResult] = await Promise.allSettled([
         supabase.from("newsletter_subscribers").insert({ email }),
         fetch("/api/send-lead-to-cvcrm", {
           method: "POST",
@@ -35,8 +35,21 @@ export default function FooterSection() {
         }),
       ]);
 
-      if (newsletterResult.error || !cvcrmResult.ok) {
-        throw new Error("Newsletter ou CVCRM falhou.");
+      if (newsletterResult.status === "fulfilled" && newsletterResult.value.error) {
+        console.warn("Newsletter Supabase insert skipped", {
+          code: newsletterResult.value.error.code,
+          message: newsletterResult.value.error.message,
+        });
+      }
+
+      if (newsletterResult.status === "rejected") {
+        console.warn("Newsletter Supabase insert failed", {
+          message: newsletterResult.reason instanceof Error ? newsletterResult.reason.message : "unknown",
+        });
+      }
+
+      if (cvcrmResult.status === "rejected" || !cvcrmResult.value.ok) {
+        throw new Error("CVCRM falhou.");
       }
     } catch (error) {
       console.error("Erro ao cadastrar newsletter:", error);
