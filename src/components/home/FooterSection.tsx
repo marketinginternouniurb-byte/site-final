@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { MapPin, Phone, Mail, Instagram, Facebook, Music2, Send } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { openCookiePreferences } from "@/lib/cookie-consent";
+import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
 
 export default function FooterSection() {
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -16,39 +19,29 @@ export default function FooterSection() {
       return;
     }
 
+    if (!turnstileToken) {
+      alert("Conclua a validacao de seguranca para enviar.");
+      return;
+    }
+
     setSending(true);
     try {
-      const [newsletterResult, cvcrmResult] = await Promise.allSettled([
-        supabase.from("newsletter_subscribers").insert({ email }),
-        fetch("/api/send-lead-to-cvcrm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: "Lead newsletter",
-            email,
-            website: "",
-            origin: "Site - Newsletter",
-            conversion: "Newsletter",
-            page: "/",
-            message: "Cadastro para receber novidades e lancamentos.",
-          }),
+      const response = await fetch("/api/send-lead-to-cvcrm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Lead newsletter",
+          email,
+          website,
+          turnstileToken,
+          origin: "Site - Newsletter",
+          conversion: "Newsletter",
+          page: "/",
+          message: "Cadastro para receber novidades e lancamentos.",
         }),
-      ]);
+      });
 
-      if (newsletterResult.status === "fulfilled" && newsletterResult.value.error) {
-        console.warn("Newsletter Supabase insert skipped", {
-          code: newsletterResult.value.error.code,
-          message: newsletterResult.value.error.message,
-        });
-      }
-
-      if (newsletterResult.status === "rejected") {
-        console.warn("Newsletter Supabase insert failed", {
-          message: newsletterResult.reason instanceof Error ? newsletterResult.reason.message : "unknown",
-        });
-      }
-
-      if (cvcrmResult.status === "rejected" || !cvcrmResult.value.ok) {
+      if (!response.ok) {
         throw new Error("CVCRM falhou.");
       }
     } catch (error) {
@@ -61,6 +54,9 @@ export default function FooterSection() {
     setSending(false);
     alert("Inscrição realizada com sucesso!");
     setEmail("");
+    setWebsite("");
+    setTurnstileToken("");
+    setTurnstileReset((value) => value + 1);
     setAcceptedPrivacy(false);
   };
 
@@ -152,7 +148,16 @@ export default function FooterSection() {
             </div>
             
             <form onSubmit={handleEmailSubmit} className="group relative max-w-md w-full space-y-3">
-              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
               <div className="relative flex items-center">
                 <Mail className="absolute left-5 text-white/30 group-focus-within:text-[#FFD700] transition-colors duration-300" size={18} />
                 
@@ -194,6 +199,12 @@ export default function FooterSection() {
                   .
                 </span>
               </label>
+              <TurnstileWidget
+                value={turnstileToken}
+                onChange={setTurnstileToken}
+                resetSignal={turnstileReset}
+                theme="dark"
+              />
             </form>
 
             {/* Resolvido o atropelamento: Isolado com margem de segurança */}

@@ -18,7 +18,11 @@ dist-ssr
 
 # Wrangler / Cloudflare
 .wrangler/
+.env
+.env.*
+!.env.example
 .dev.vars
+.dev.vars.*
 supabase/.temp/
 
 # Editor directories and files

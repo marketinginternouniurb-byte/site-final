@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release-security-hardening
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  validate:
+    name: Build, typecheck, lint, test, audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: TypeScript
+        run: npx tsc --noEmit --pretty false
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npx vitest run --reporter=verbose
+
+      - name: Audit high and critical vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Secret pattern guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E '(CVCRM_(API_)?TOKEN|SUPABASE_SERVICE_ROLE_KEY|LEAD_FORM_SECRET|TURNSTILE_SECRET_KEY)=[^<[:space:]][^[:space:]]*' -- ':!package-lock.json'; then
+            echo "Potential secret assignment found in versioned files."
+            exit 1
+          fi
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4

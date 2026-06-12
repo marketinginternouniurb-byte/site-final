@@ -1,10 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://site-final2.marketing-internouniurb.workers.dev",
+  "https://site-final.marketing-internouniurb.workers.dev",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin")?.replace(/\/$/, "") || "";
+  const configured = (Deno.env.get("SYNC_ALLOWED_ORIGINS") || "")
+    .split(",")
+    .map((value) => value.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  const allowedOrigins = configured.length > 0 ? configured : DEFAULT_ALLOWED_ORIGINS;
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Max-Age": "600",
+    "Vary": "Origin",
+  };
+}
 
 function normalizeText(value?: string | null) {
   return String(value || "")
@@ -215,6 +234,8 @@ async function fetchJson(url: string, init?: RequestInit) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -358,7 +379,11 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("sync-projects error", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
+
+    return new Response(JSON.stringify({ error: "Erro ao sincronizar dados do CVCRM." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

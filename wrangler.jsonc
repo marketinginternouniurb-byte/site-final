@@ -7,5 +7,25 @@
   "vars": {
     "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z"
+  },
+  "env": {
+    "staging": {
+      "name": "universal-site-staging",
+      "vars": {
+        "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
+        "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+        "LEAD_DRY_RUN": "true",
+        "DRY_RUN": "true"
+      }
+    },
+    "production": {
+      "name": "site-final2",
+      "vars": {
+        "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
+        "LEAD_ALLOWED_ORIGINS": "https://site-final2.marketing-internouniurb.workers.dev"
+      }
+    }
   }
 }
