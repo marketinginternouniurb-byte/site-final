@@ -8,7 +8,7 @@ interface PageShellProps {
 
 export default function PageShell({ children }: PageShellProps) {
   useEffect(() => {
-    const TYPEBOT_VERSION = "lotti-avatar-v7";
+    const TYPEBOT_VERSION = "lotti-avatar-v8";
     const shouldResetTypebot =
       localStorage.getItem("lotti-typebot-version") !== TYPEBOT_VERSION;
 
@@ -18,7 +18,7 @@ export default function PageShell({ children }: PageShellProps) {
       import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js';
 
       Typebot.initBubble({
-        typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-ix3k1kh',
+        typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-7f88exh',
         apiHost: 'https://typebot.co',
         theme: {
           button: {
