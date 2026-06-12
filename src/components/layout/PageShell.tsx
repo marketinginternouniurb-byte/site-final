@@ -40,19 +40,19 @@ export default function PageShell({ children }: PageShellProps) {
       <main className="flex-grow">{children}</main>
       <FooterSection />
 
-      {/* Mascote fixo ao lado do botão do Typebot */}
+      {/* Mascote fixo ao lado do botão — não interfere no Typebot */}
       <img
         src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
         alt="Lotti"
         style={{
           position: 'fixed',
           bottom: '10px',
-          right: '90px', // posicionado à esquerda do botão do Typebot
+          right: '90px',
           width: '110px',
           height: '110px',
           objectFit: 'contain',
           zIndex: 9998,
-          pointerEvents: 'none', // não interfere nos cliques
+          pointerEvents: 'none',
         }}
       />
     </div>
