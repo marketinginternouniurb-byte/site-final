@@ -248,3 +248,265 @@ function ProjectDetails() {
           >
             <ArrowLeft
               size={20}
+              className="group-hover:-translate-x-1 transition-transform"
+            />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Voltar aos Lançamentos
+            </span>
+          </Link>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+            <div className="flex flex-col gap-8">
+              <div className="relative rounded-[40px] overflow-hidden shadow-2xl border-4 border-white aspect-square w-full bg-slate-100">
+                <img
+                  src={getOptimizedImageUrl(project.image_url, { width: 1200, quality: 82 })}
+                  alt={project.title}
+                  loading="eager"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
+
+                <div className="absolute top-6 left-6 bg-[#123AAA] text-white px-6 py-2 rounded-2xl shadow-xl border border-white/20 backdrop-blur-md">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    {project.status}
+                  </span>
+                </div>
+              </div>
+
+              {youtubeEmbedUrl && (
+                <div className="space-y-3">
+                  <div className="relative rounded-[40px] overflow-hidden shadow-xl border-4 border-white aspect-video w-full bg-slate-900">
+                    <iframe
+                      src={youtubeEmbedUrl}
+                      title={`Vídeo do empreendimento ${project.title}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
+
+                  <a
+                    href={youtubeWatchUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-[#123AAA] hover:text-[#0a2570] font-black uppercase tracking-widest text-[10px] no-underline"
+                  >
+                    <PlayCircle size={15} />
+                    Abrir vídeo no YouTube
+                    <ExternalLink size={13} />
+                  </a>
+                </div>
+              )}
+
+            </div>
+
+            <div className="space-y-8 lg:sticky lg:top-32">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-[#FFD700] text-[#123AAA] px-4 py-1.5 rounded-lg mb-6 font-bold text-[11px] uppercase tracking-widest shadow-sm antialiased">
+                  <Building2 size={14} />
+                  Empreendimento Premium
+                </div>
+
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#123AAA] uppercase tracking-tight leading-[1.1] mb-4 break-words">
+                  {project.title}
+                </h1>
+
+                <div className="flex items-center gap-2 text-[#123AAA]/60 font-bold uppercase text-xs">
+                  <MapPin size={16} className="text-[#FFD700]" />
+                  {project.area || project.location}
+                </div>
+              </div>
+
+              {(project.descricao || project.description) && (
+                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-4">
+                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-2 antialiased">
+                    <Info size={16} className="text-[#FFD700]" />
+                    Sobre o Projeto
+                  </h3>
+
+                  <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap font-medium antialiased">
+                    {project.descricao || project.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Galeria de Fotos Dinâmica */}
+              {project.gallery && project.gallery.length > 0 && (
+                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
+                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
+                    <Building2 size={16} className="text-[#FFD700]" />
+                    Galeria do Empreendimento
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {project.gallery.map((item: any, idx: number) => {
+                      const imgUrl = typeof item === 'string' ? item : (item.url || item.arquivo || item.foto);
+                      if (!imgUrl) return null;
+                      return (
+                        <div key={idx} className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer" onClick={() => window.open(imgUrl, '_blank')}>
+                          <img 
+                            src={imgUrl} 
+                            alt={`Foto ${idx + 1}`} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
+                <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
+                  <HardHat size={16} className="text-[#FFD700]" />
+                  Infraestrutura e Obras
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ProgressItem
+                    label="Rede de Água"
+                    value={project.progresso_agua}
+                    icon={<Droplets size={16} />}
+                  />
+                  <ProgressItem
+                    label="Energia Elétrica"
+                    value={project.progresso_energia}
+                    icon={<Lightbulb size={16} />}
+                  />
+                  <ProgressItem
+                    label="Esgotamento"
+                    value={project.progresso_saneamento}
+                    icon={<Pickaxe size={16} />}
+                  />
+                  <ProgressItem
+                    label="Pavimentação"
+                    value={project.progresso_pavimentacao}
+                    icon={<Ruler size={16} />}
+                  />
+                </div>
+              </div>
+
+              {/* Seção de Mapa 3D e Agendamento */}
+              {(project.planta_url || project.unidades?.length > 0) && (
+                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
+                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
+                    <MapPin size={16} className="text-[#FFD700]" />
+                    Mapa Interativo e Disponibilidade
+                  </h3>
+                  
+                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
+                    {project.planta_url ? (
+                      <img
+                        src={getOptimizedImageUrl(project.planta_url, { width: 1400, quality: 84 })}
+                        alt={`Mapa do empreendimento ${project.title}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-contain bg-white"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs font-black uppercase tracking-widest text-slate-400">
+                        Planta nao cadastrada
+                      </div>
+                    )}
+                  </div>
+
+                  {project.planta_url && (
+                    <a
+                      href={project.planta_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 text-[#123AAA] hover:text-[#0a2570] font-black uppercase tracking-widest text-[10px] no-underline"
+                    >
+                      Ver planta em tamanho real
+                      <ExternalLink size={13} />
+                    </a>
+                  )}
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[#123AAA]/60">
+                      Selecione um lote disponível para agendar visita:
+                    </label>
+                    <select 
+                      className="w-full p-4 rounded-xl border-2 border-[#123AAA]/10 bg-slate-50 font-bold text-[#123AAA] text-sm focus:border-[#FFD700] outline-none transition-all"
+                      onChange={(e) => {
+                        const lote = e.target.value;
+                        if (lote) {
+                          window.open(`https://wa.me/552728880001?text=${encodeURIComponent(
+                            `Olá! Tenho interesse em agendar uma visita para o lote ${lote} no empreendimento ${project.title}`
+                          )}`, '_blank');
+                        }
+                      }}
+                    >
+                      <option value="">Ver lotes disponíveis...</option>
+                      {project.unidades?.filter(isAvailableUnit).map((u: any) => (
+                        <option key={u.id || u.label} value={u.label}>
+                          {u.label} - Disponivel
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href={`https://wa.me/552728880001?text=${encodeURIComponent(
+                    `Olá! Tenho interesse no empreendimento ${project.title}`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 bg-[#123AAA] text-white text-center py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#0a2570] transition-all shadow-xl flex items-center justify-center gap-3 no-underline"
+                >
+                  Falar com Especialista
+                </a>
+
+                <div className="bg-white border-2 border-[#123AAA]/10 px-6 py-3 rounded-xl flex flex-col justify-center items-center min-w-[140px]">
+                  <span className="text-[9px] font-black text-[#123AAA]/40 uppercase text-center">
+                    Lotes Disp.
+                  </span>
+                  <span className="text-xl font-black text-[#123AAA] mt-0.5">
+                    {project.lotes_disponiveis}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <FooterSection />
+    </div>
+  );
+}
+
+function ProgressItem({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: number;
+  icon: any;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#123AAA]/70">
+        <div className="flex items-center gap-2">
+          {icon}
+          {label}
+        </div>
+        <span>{value || 0}%</span>
+      </div>
+
+      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#FFD700] transition-all duration-1000 rounded-full"
+          style={{ width: `${value || 0}%` }}
+        />
+      </div>
+    </div>
+  );
+}
