@@ -10,7 +10,11 @@ export default function PageShell({ children }: PageShellProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Carrega o Typebot em modo headless (sem botão nativo)
+    // Esconde o botão nativo do Typebot via CSS
+    const style = document.createElement("style");
+    style.innerHTML = `typebot-bubble { display: none !important; }`;
+    document.head.appendChild(style);
+
     const script = document.createElement("script");
     script.type = "module";
     script.innerHTML = `
@@ -22,27 +26,22 @@ export default function PageShell({ children }: PageShellProps) {
           button: {
             size: 'medium',
             backgroundColor: 'transparent',
-            customIconSrc: 'https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png',
           },
         },
       });
-      window.__typebotOpen = () => {
-        window.dispatchEvent(new CustomEvent('open-typebot'));
-      };
     `;
     document.body.appendChild(script);
 
-    // Mostra o botão após 1s
     const timer = setTimeout(() => setVisible(true), 1000);
 
     return () => {
       document.body.removeChild(script);
+      document.head.removeChild(style);
       clearTimeout(timer);
     };
   }, []);
 
   const handleOpen = () => {
-    // Clica no botão nativo do Typebot (escondido) para abrir o chat
     const typebotBtn = document.querySelector('typebot-bubble')?.shadowRoot?.querySelector('button');
     if (typebotBtn) typebotBtn.click();
   };
@@ -50,12 +49,9 @@ export default function PageShell({ children }: PageShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
       <Navbar />
-      <main className="flex-grow">
-        {children}
-      </main>
+      <main className="flex-grow">{children}</main>
       <FooterSection />
 
-      {/* Botão customizado Lotti */}
       {visible && (
         <div
           onClick={handleOpen}
@@ -65,39 +61,73 @@ export default function PageShell({ children }: PageShellProps) {
             right: '24px',
             zIndex: 9999,
             display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
+            alignItems: 'flex-end',
+            gap: '0px',
             cursor: 'pointer',
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
+            filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.3))',
           }}
         >
-          {/* Container de texto */}
-          <div style={{
-            backgroundColor: '#1B3FA0',
-            color: '#fff',
-            borderRadius: '20px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 700,
-            lineHeight: '1.3',
-            maxWidth: '160px',
-            textAlign: 'center',
-            letterSpacing: '0.3px',
-          }}>
-            Encontre seu<br />lote ideal!
-          </div>
-
-          {/* Mascote */}
+          {/* Mascote à esquerda, elevado */}
           <img
             src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
             alt="Lotti"
             style={{
-              width: '80px',
-              height: '80px',
+              width: '110px',
+              height: '110px',
               objectFit: 'contain',
-              transform: 'translateY(-8px)', // leve flutuação
+              transform: 'translateY(-16px)',
+              zIndex: 2,
             }}
           />
+
+          {/* Botão amarelo estilo Typebot */}
+          <div style={{
+            backgroundColor: '#F5C400',
+            borderRadius: '50px',
+            padding: '14px 20px 14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            border: '3px solid #1B3FA0',
+            minWidth: '180px',
+          }}>
+            {/* Ícone de chat */}
+            <div style={{
+              backgroundColor: '#1B3FA0',
+              borderRadius: '50%',
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.48 2 2 6.03 2 11c0 2.62 1.19 4.98 3.07 6.61L4 22l4.62-1.54C9.96 20.81 10.97 21 12 21c5.52 0 10-4.03 10-9S17.52 2 12 2z" fill="#F5C400"/>
+              </svg>
+            </div>
+
+            {/* Texto */}
+            <div>
+              <div style={{
+                color: '#1B3FA0',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+              }}>
+                LOTTI
+              </div>
+              <div style={{
+                color: '#1B3FA0',
+                fontSize: '13px',
+                fontWeight: 800,
+                lineHeight: '1.3',
+              }}>
+                Encontre seu<br />lote ideal!
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
