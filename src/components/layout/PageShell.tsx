@@ -1,24 +1,20 @@
 import React, { useEffect } from "react";
 import Navbar from "./Navbar";
 import FooterSection from "@/components/home/FooterSection";
-
 interface PageShellProps {
   children: React.ReactNode;
 }
-
 export default function PageShell({ children }: PageShellProps) {
   useEffect(() => {
-    const TYPEBOT_VERSION = "lotti-avatar-v8";
+    const TYPEBOT_VERSION = "lotti-avatar-v9";
     const shouldResetTypebot =
       localStorage.getItem("lotti-typebot-version") !== TYPEBOT_VERSION;
-
     const script = document.createElement("script");
     script.type = "module";
     script.innerHTML = `
       import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js';
-
       Typebot.initBubble({
-        typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-7f88exh',
+        typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-rucb7fc',
         apiHost: 'https://typebot.co',
         theme: {
           button: {
@@ -28,7 +24,6 @@ export default function PageShell({ children }: PageShellProps) {
           },
         },
       });
-
       if (${shouldResetTypebot}) {
         setTimeout(() => {
           try {
@@ -41,20 +36,16 @@ export default function PageShell({ children }: PageShellProps) {
       }
     `;
     document.body.appendChild(script);
-
     localStorage.setItem("lotti-typebot-version", TYPEBOT_VERSION);
-
     return () => {
       document.body.removeChild(script);
     };
   }, []);
-
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
       <Navbar />
       <main className="flex-grow">{children}</main>
       <FooterSection />
-
       <div
         style={{
           position: "fixed",
@@ -93,7 +84,6 @@ export default function PageShell({ children }: PageShellProps) {
           >
             LOTTI
           </div>
-
           <div
             style={{
               fontSize: "12px",
@@ -103,7 +93,6 @@ export default function PageShell({ children }: PageShellProps) {
           >
             Encontre seu lote ideal! 😊
           </div>
-
           <span
             style={{
               position: "absolute",
@@ -117,7 +106,6 @@ export default function PageShell({ children }: PageShellProps) {
             }}
           />
         </div>
-
         <img
           src="/mascote-universal.png?v=6"
           alt="Lotti"
