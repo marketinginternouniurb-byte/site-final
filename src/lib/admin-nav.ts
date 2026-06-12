@@ -11,7 +11,7 @@ export type AdminNavLink = {
 
 export const adminNavLinks = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/empreendimentos", label: "Empreendimentos", icon: Building2 },
+  { to: "/admin/projects", label: "Empreendimentos", icon: Building2 },
   { to: "/admin/leads", label: "Leads", icon: Users },
   { to: "/admin/blog", label: "Blog", icon: FileText },
   { to: "/admin/depoimentos", label: "Depoimentos", icon: MessageSquare },

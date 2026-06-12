@@ -21,6 +21,9 @@ export const Route = createFileRoute("/contato")({
       { property: "og:title", content: "Contato — Universal Imobiliária" },
       { property: "og:description", content: "Fale com nossos consultores em Vitória-ES." },
     ],
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/contato" },
+    ],
   }),
   component: Contato,
 });
@@ -52,6 +55,7 @@ function Contato() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          website: "",
           conversion: "Formulario de contato",
           page: "/contato",
         }),
@@ -122,6 +126,7 @@ function Contato() {
           <div className="lg:col-span-2">
             <form onSubmit={onSubmit} className="bg-card border border-border rounded-2xl p-8 space-y-5">
               <h2 className="font-poppins text-2xl font-bold mb-2">Envie sua mensagem</h2>
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

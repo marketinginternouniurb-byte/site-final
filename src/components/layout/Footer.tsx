@@ -57,7 +57,7 @@ export default function Footer() {
             <h4 className="font-bold text-lg mb-4">Links Rápidos</h4>
             <ul className="space-y-2 text-sm opacity-90">
               {[
-                { label: "Empreendimentos", path: "/empreendimentos" as const },
+                { label: "Empreendimentos", path: "/" as const },
                 { label: "Sobre Nós", path: "/sobre" as const },
                 { label: "Contato", path: "/contato" as const },
               ].map((link) => (

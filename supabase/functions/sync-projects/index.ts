@@ -297,7 +297,6 @@ serve(async (req) => {
     const cvbotUnitRows = getArrayPayload(cvbotUnits.data);
     const mapRows = getAvailabilityRows(mapAvailability.data);
     const mapTotal = getTotalFromPayload(mapAvailability.data);
-    const units = mapRows.length > 0 ? mapRows : legacyUnitRows.length > 0 ? legacyUnitRows : cvbotUnitRows;
     const availableUnits = cvbotUnitRows.length > 0
       ? cvbotUnitRows
       : legacyUnitRows.length > 0
@@ -305,7 +304,7 @@ serve(async (req) => {
         : mapRows.filter(isAvailableUnit);
 
     const gallery = project?.fotos || project?.galeria || project?.imagens || [];
-    const responseData = {
+    const responseData: Record<string, unknown> = {
       project: {
         ...project,
         foto_destaque: getProjectImage(project, gallery),
@@ -339,7 +338,10 @@ serve(async (req) => {
           "Disponivel",
         subbloco: unit.subbloco || unit.quadra || unit.bloco || "",
       })),
-      debug: {
+    };
+
+    if (Deno.env.get("DEBUG_CVCRM") === "true") {
+      responseData.debug = {
         legacyProjectStatus: legacyProject.status,
         legacyUnitsStatus: legacyUnits.status,
         cvbotUnitsStatus: cvbotUnits.status,
@@ -348,8 +350,8 @@ serve(async (req) => {
         mapTotal,
         cvdwProjectsStatus: cvdwProjects.status,
         hasCvcrmEmail: Boolean(cvcrmEmail),
-      },
-    };
+      };
+    }
 
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

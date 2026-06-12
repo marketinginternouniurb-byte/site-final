@@ -7,6 +7,11 @@ import TestimonialsSection from "@/components/home/TestimonialsSection";
 import BlogPreview from "@/components/home/BlogPreview";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/" },
+    ],
+  }),
   component: Index,
 });
 

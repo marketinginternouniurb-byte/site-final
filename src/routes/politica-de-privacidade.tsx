@@ -33,6 +33,9 @@ export const Route = createFileRoute("/politica-de-privacidade")({
           "Saiba como a Universal Urbanismo trata dados pessoais e como exercer seus direitos como titular.",
       },
     ],
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/politica-de-privacidade" },
+    ],
   }),
   component: PoliticaDePrivacidade,
 });

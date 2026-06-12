@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeAll, describe, it, expect, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import {
   createRouter,
   createRootRoute,
@@ -11,9 +11,16 @@ import {
 } from "@tanstack/react-router";
 import { adminNavLinks } from "@/lib/admin-nav";
 
+beforeAll(() => {
+  Object.defineProperty(window, "scrollTo", {
+    configurable: true,
+    value: vi.fn(),
+  });
+});
+
 const EXPECTED = [
   { to: "/admin", label: "Dashboard" },
-  { to: "/admin/empreendimentos", label: "Empreendimentos" },
+  { to: "/admin/projects", label: "Empreendimentos" },
   { to: "/admin/leads", label: "Leads" },
   { to: "/admin/blog", label: "Blog" },
   { to: "/admin/depoimentos", label: "Depoimentos" },
@@ -59,7 +66,9 @@ describe("admin menu navigation", () => {
 
   it("each link href matches its declared `to` path", async () => {
     const router = buildTestRouter();
-    await router.load();
+    await act(async () => {
+      await router.load();
+    });
     render(<RouterProvider router={router} />);
 
     for (const l of adminNavLinks) {
@@ -71,12 +80,16 @@ describe("admin menu navigation", () => {
 
   it("navigates to each link's route", async () => {
     const router = buildTestRouter();
-    await router.load();
+    await act(async () => {
+      await router.load();
+    });
     render(<RouterProvider router={router} />);
 
     for (const l of adminNavLinks) {
-      await router.navigate({ to: l.to });
-      await router.invalidate();
+      await act(async () => {
+        await router.navigate({ to: l.to });
+        await router.invalidate();
+      });
       const page = await screen.findByTestId(`page-${l.to}`);
       expect(page).toHaveTextContent(`${l.label} page`);
     }

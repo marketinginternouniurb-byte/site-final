@@ -33,6 +33,9 @@ export const Route = createFileRoute("/sobre")({
       },
       { property: "og:image", content: "/sobre-universal-hero.webp" },
     ],
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/sobre" },
+    ],
   }),
   component: Sobre,
 });

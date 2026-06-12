@@ -4,7 +4,6 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -48,6 +47,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Universal Imobiliária & Urbanismo" },
+      {
+        name: "description",
+        content: "Loteamentos e empreendimentos da Universal Urbanismo no Espirito Santo.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Universal Urbanismo" },
+      { property: "og:title", content: "Universal Imobiliaria & Urbanismo" },
+      {
+        property: "og:description",
+        content: "Conheca empreendimentos, condicoes e atendimento da Universal Urbanismo.",
+      },
+      { property: "og:url", content: "https://site-final2.marketing-internouniurb.workers.dev/" },
+      { property: "og:image", content: "https://site-final2.marketing-internouniurb.workers.dev/logo-escrita2.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

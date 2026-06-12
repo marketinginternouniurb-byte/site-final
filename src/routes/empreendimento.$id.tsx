@@ -1,6 +1,7 @@
 import { createFileRoute, useParams, Link } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { getOptimizedImageUrl } from '@/lib/images';
 import {
   MapPin,
@@ -25,6 +26,88 @@ export const Route = createFileRoute('/empreendimento/$id')({
 
 const FALLBACK_PROJECT_IMAGE =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop";
+
+type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
+
+type ImageObject = {
+  url?: string | null;
+  foto?: string | null;
+  imagem?: string | null;
+  arquivo?: string | null;
+  caminho?: string | null;
+  link?: string | null;
+};
+
+type ImageValue = string | ImageObject | null | undefined;
+
+type ProjectBaseData = Partial<Omit<PropertyRow, "gallery" | "id" | "status">> & {
+  id?: string | number | null;
+  title?: string | null;
+  image_url?: string | null;
+  planta_url?: string | null;
+  gallery?: ImageValue[] | null;
+  status?: string | null;
+  descricao?: string | null;
+  video_url?: string | null;
+  cvcrm_id?: string | number | null;
+  lotes_disponiveis?: number | null;
+  lotes_totais?: number | null;
+  progresso_agua?: number | null;
+  progresso_saneamento?: number | null;
+  progresso_pavimentacao?: number | null;
+  progresso_energia?: number | null;
+};
+
+type CvcrmProject = {
+  idempreendimento?: string | number | null;
+  nome?: string | null;
+  situacao?: string | null;
+  cidade?: string | null;
+  descricao?: string | null;
+  foto_destaque?: ImageValue;
+  foto?: ImageValue;
+  imagem?: ImageValue;
+  imagem_principal?: ImageValue;
+  url_foto?: ImageValue;
+  foto_url?: ImageValue;
+  capa?: ImageValue;
+  banner?: ImageValue;
+};
+
+type CvcrmUnit = {
+  id?: string | number | null;
+  label?: string | number | null;
+  status?: string | null;
+  situacao?: string | null;
+  situacao_comercial?: string | null;
+  status_comercial?: string | null;
+  subbloco?: string | null;
+  quadra?: string | null;
+  bloco?: string | null;
+};
+
+type CvcrmData = {
+  project?: CvcrmProject | null;
+  gallery?: ImageValue[] | null;
+  stats?: {
+    available?: number | null;
+    total?: number | null;
+  } | null;
+  units?: CvcrmUnit[] | null;
+};
+
+type ProjectDetailsState = ProjectBaseData & {
+  id?: string | number | null;
+  title?: string | null;
+  status?: string | null;
+  location?: string | null;
+  description?: string | null;
+  image_url: string;
+  planta_url?: string | null;
+  gallery: ImageValue[];
+  unidades: CvcrmUnit[];
+  cv_id?: string | number | null;
+};
 
 function getYouTubeId(input?: string | null) {
   if (!input) return null;
@@ -102,7 +185,7 @@ function normalizeText(value?: string | null) {
     .trim();
 }
 
-function isAvailableUnit(unit: any) {
+function isAvailableUnit(unit: CvcrmUnit) {
   const status = normalizeText(
     unit?.status ||
       unit?.situacao ||
@@ -130,22 +213,24 @@ function isManualMapImage(url?: string | null) {
   );
 }
 
-function getImageUrlFromValue(value: any): string | null {
+function getImageUrlFromValue(value: unknown): string | null {
   if (!value) return null;
   if (typeof value === "string") return value;
 
-  return (
-    value.url ||
-    value.foto ||
-    value.imagem ||
-    value.arquivo ||
-    value.caminho ||
-    value.link ||
-    null
-  );
+  if (typeof value !== "object") return null;
+
+  const record = value as Record<string, unknown>;
+  for (const key of ["url", "foto", "imagem", "arquivo", "caminho", "link"]) {
+    const field = record[key];
+    if (typeof field === "string" && field.trim()) {
+      return field;
+    }
+  }
+
+  return null;
 }
 
-function getCvcrmProjectImage(cvProject: any, gallery: any[] = []) {
+function getCvcrmProjectImage(cvProject: CvcrmProject, gallery: ImageValue[] = []) {
   const direct =
     cvProject?.foto_destaque ||
     cvProject?.foto ||
@@ -161,7 +246,7 @@ function getCvcrmProjectImage(cvProject: any, gallery: any[] = []) {
 
 function ProjectDetails() {
   const { id } = useParams({ from: '/empreendimento/$id' });
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<ProjectDetailsState | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -175,9 +260,16 @@ function ProjectDetails() {
         .eq('id', id)
         .single();
 
+      const baseData = (dbData ?? {}) as ProjectBaseData;
+
       // 2. Buscar dados em tempo real do CVCRM via Edge Function
-      let cvData = null;
-      const cvcrmId = getCvcrmId((dbData as any)?.cvcrm_url || (dbData as any)?.cvcrm_id);
+      let cvData: CvcrmData | null = null;
+      const cvcrmId = getCvcrmId(
+        baseData.cvcrm_url ||
+          (baseData.cvcrm_id !== undefined && baseData.cvcrm_id !== null
+            ? String(baseData.cvcrm_id)
+            : null)
+      );
 
       try {
         if (cvcrmId) {
@@ -185,20 +277,25 @@ function ProjectDetails() {
             method: 'POST',
             body: { id: cvcrmId }
           });
-          if (!funcError) cvData = funcData;
+          if (!funcError) cvData = funcData as CvcrmData;
         }
       } catch (e) {
         console.error("Erro ao buscar dados do CVCRM:", e);
       }
 
       if (!dbError || cvData) {
-        const baseData = dbData || {};
         const cvProject = cvData?.project || {};
-        const gallery = cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []);
+        const gallery: ImageValue[] =
+          Array.isArray(cvData?.gallery) && cvData.gallery.length > 0
+            ? cvData.gallery
+            : Array.isArray(baseData.gallery)
+              ? baseData.gallery
+              : [];
         const cvcrmImage = getCvcrmProjectImage(cvProject, gallery);
-        const dbImage = isManualMapImage(baseData.image_url) ? null : baseData.image_url;
+        const configuredImage = baseData.image_url || baseData.image;
+        const dbImage = isManualMapImage(configuredImage) ? null : configuredImage;
         const manualMapImage =
-          baseData.planta_url || (isManualMapImage(baseData.image_url) ? baseData.image_url : null);
+          baseData.planta_url || (isManualMapImage(configuredImage) ? configuredImage : null);
         
         // Mesclar dados do banco local com os dados em tempo real do CVCRM
         setProject({
@@ -245,17 +342,7 @@ function ProjectDetails() {
 
   const youtubeWatchUrl = youtubeId
     ? `https://www.youtube.com/watch?v=${youtubeId}`
-    : project?.video_url;
-
-  const cvcrmMapUrl = useMemo(() => {
-    if (!project?.cv_id && !project?.cvcrm_url) return null;
-
-    if (project?.cvcrm_url && /^https?:\/\//i.test(project.cvcrm_url)) {
-      return project.cvcrm_url;
-    }
-
-    return `https://universal.cvcrm.com.br/mapa-disponibilidade/${project.cv_id || project.cvcrm_url}`;
-  }, [project?.cv_id, project?.cvcrm_url]);
+    : project?.video_url ?? undefined;
 
   if (loading) {
     return (
@@ -309,7 +396,7 @@ function ProjectDetails() {
               <div className="relative rounded-[40px] overflow-hidden shadow-2xl border-4 border-white aspect-square w-full bg-slate-100">
                 <img
                   src={getOptimizedImageUrl(project.image_url, { width: 1200, quality: 82 })}
-                  alt={project.title}
+                  alt={project.title ?? "Empreendimento"}
                   loading="eager"
                   decoding="async"
                   className="w-full h-full object-cover"
@@ -390,8 +477,8 @@ function ProjectDetails() {
                   </h3>
                   
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {project.gallery.map((item: any, idx: number) => {
-                      const imgUrl = typeof item === 'string' ? item : (item.url || item.arquivo || item.foto);
+                    {project.gallery.map((item, idx) => {
+                      const imgUrl = getImageUrlFromValue(item);
                       if (!imgUrl) return null;
                       return (
                         <div key={idx} className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer" onClick={() => window.open(imgUrl, '_blank')}>
@@ -490,9 +577,9 @@ function ProjectDetails() {
                       }}
                     >
                       <option value="">Ver lotes disponíveis...</option>
-                      {project.unidades?.filter(isAvailableUnit).map((u: any) => (
-                        <option key={u.id || u.label} value={u.label}>
-                          {u.label} - Disponivel
+                      {project.unidades?.filter(isAvailableUnit).map((u) => (
+                        <option key={u.id || u.label} value={String(u.label ?? "")}>
+                          {String(u.label ?? "Lote")} - Disponivel
                         </option>
                       ))}
                     </select>
@@ -537,8 +624,8 @@ function ProgressItem({
   icon,
 }: {
   label: string;
-  value: number;
-  icon: any;
+  value?: number | null;
+  icon: ReactNode;
 }) {
   return (
     <div className="space-y-2">

@@ -5,6 +5,23 @@ import PageShell from "@/components/layout/PageShell";
 import { supabase } from "../integrations/supabase/client";
 
 export const Route = createFileRoute("/facilita")({
+  head: () => ({
+    meta: [
+      { title: "Universal Facilita - Universal Urbanismo" },
+      {
+        name: "description",
+        content: "Conheca o programa Universal Facilita e fale com a Universal Urbanismo.",
+      },
+      { property: "og:title", content: "Universal Facilita" },
+      {
+        property: "og:description",
+        content: "Atendimento consultivo para encontrar o empreendimento ideal.",
+      },
+    ],
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/facilita" },
+    ],
+  }),
   component: Facilita,
 });
 
@@ -20,6 +37,7 @@ function Facilita() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [interesse, setInteresse] = useState("");
+  const [website, setWebsite] = useState("");
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,6 +46,10 @@ function Facilita() {
 
     if (!acceptedPrivacy) {
       alert("Para continuar, aceite a Política de Privacidade e LGPD.");
+      return;
+    }
+
+    if (website.trim()) {
       return;
     }
 
@@ -153,6 +175,7 @@ function Facilita() {
 
             <div className="rounded-3xl border border-[#FFD700]/35 bg-[#0b2f91] p-5 shadow-2xl shadow-black/25 sm:p-8">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <input type="text" name="website" value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
                 {/* Nome */}
                 <label className="relative group block">
                   <span className="mb-2 block text-xs font-black uppercase tracking-widest text-[#FFD700]">Nome</span>

@@ -26,6 +26,7 @@ export default function FooterSection() {
           body: JSON.stringify({
             name: "Lead newsletter",
             email,
+            website: "",
             origin: "Site - Newsletter",
             conversion: "Newsletter",
             page: "/",
@@ -138,6 +139,7 @@ export default function FooterSection() {
             </div>
             
             <form onSubmit={handleEmailSubmit} className="group relative max-w-md w-full space-y-3">
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
               <div className="relative flex items-center">
                 <Mail className="absolute left-5 text-white/30 group-focus-within:text-[#FFD700] transition-colors duration-300" size={18} />
                 

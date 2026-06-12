@@ -3,6 +3,23 @@ import { ArrowRight, CheckCircle2, Home, MapPin, ShieldCheck, Sparkles } from "l
 import PageShell from "@/components/layout/PageShell";
 
 export const Route = createFileRoute("/universal-facilita")({
+  head: () => ({
+    meta: [
+      { title: "Universal Facilita - Universal Urbanismo" },
+      {
+        name: "description",
+        content: "Conquiste seu espaco com atendimento da Universal Urbanismo.",
+      },
+      { property: "og:title", content: "Universal Facilita" },
+      {
+        property: "og:description",
+        content: "Projetos em regioes de expansao urbana com atendimento direto.",
+      },
+    ],
+    links: [
+      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/universal-facilita" },
+    ],
+  }),
   component: UniversalSimplifica,
 });
 
