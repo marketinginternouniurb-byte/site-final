@@ -22,7 +22,7 @@ export default function PageShell({ children }: PageShellProps) {
         theme: {
           button: {
             backgroundColor: '#F5C400',
-            customIconSrc: 'https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png',
+            customIconSrc: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNDAgNEg4QzUuOCA0IDQgNS44IDQgOFYzNkw0IDQ0TDEyIDM2SDQwQzQyLjIgMzYgNDQgMzQuMiA0NCAzMlY4QzQ0IDUuOCA0Mi4yIDQgNDAgNFoiIGZpbGw9IiMxQjNGQTAiLz48L3N2Zz4=',
             size: 'large',
           },
         },
