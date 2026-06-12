@@ -1,0 +1,3 @@
+ALTER TABLE public.properties
+ADD COLUMN IF NOT EXISTS planta_url TEXT,
+ADD COLUMN IF NOT EXISTS cvcrm_url TEXT;
