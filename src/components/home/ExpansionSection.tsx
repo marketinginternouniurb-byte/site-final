@@ -35,7 +35,7 @@ const LEGACY_PROJECTS = [
   },
   {
     id: "leg-3",
-    title: "Vista de Vitória",
+    title: "Vista de Vitoria",
     location: "Cariacica - ES",
     image_url:
       "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop",
@@ -58,34 +58,82 @@ const LEGACY_PROJECTS = [
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop";
 
+function getCvcrmId(input?: string | null) {
+  if (!input) return null;
+
+  const value = input.trim();
+  if (/^\d+$/.test(value)) return value;
+
+  try {
+    const url = new URL(value);
+    const queryId =
+      url.searchParams.get("idempreendimento") ||
+      url.searchParams.get("idEmpreendimento") ||
+      url.searchParams.get("id");
+
+    if (queryId) return queryId;
+
+    return url.pathname.split("/").filter(Boolean).at(-1) ?? null;
+  } catch {
+    const match = value.match(/\d+/);
+    return match?.[0] ?? null;
+  }
+}
+
+function normalizeProject(p: any) {
+  const rawStatus = p.status || "Lancamento";
+  const status = rawStatus.toLowerCase().includes("venda")
+    ? "PRE-LANCAMENTO"
+    : rawStatus;
+
+  return {
+    ...p,
+    id: String(p.id),
+    title: p.title || p.name || "Empreendimento",
+    location: p.area || p.location || "Cariacica - ES",
+    area: p.area || p.location || "Cariacica - ES",
+    status,
+    image_url: p.image_url || p.image || FALLBACK_IMAGE,
+    planta_url: p.planta_url || p.map_image_url || "",
+    cvcrm_url: p.cvcrm_url || "",
+    cvcrm_id: p.cvcrm_id || getCvcrmId(p.cvcrm_url),
+    lotes_totais: p.lotes_totais || 0,
+    lotes_disponiveis: p.lotes_disponiveis || 0,
+    progresso_agua: p.progresso_agua || 0,
+    progresso_saneamento: p.progresso_saneamento || 0,
+    progresso_pavimentacao: p.progresso_pavimentacao || 0,
+    progresso_energia: p.progresso_energia || 0,
+  };
+}
+
+async function enrichAvailability(project: any) {
+  if (!project.cvcrm_id) return project;
+
+  try {
+    const { data, error } = await supabase.functions.invoke("sync-projects", {
+      method: "GET",
+      queries: { id: project.cvcrm_id },
+    });
+
+    if (error || !data) return project;
+
+    return {
+      ...project,
+      lotes_totais: data.stats?.total ?? project.lotes_totais,
+      lotes_disponiveis: data.stats?.available ?? project.lotes_disponiveis,
+    };
+  } catch (error) {
+    console.warn("Nao foi possivel atualizar disponibilidade no CVCRM:", error);
+    return project;
+  }
+}
+
 export default function ExpansionSection() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-
-    const normalizeProject = (p: any) => {
-      const rawStatus = p.status || "Lançamento";
-      const status = rawStatus.toLowerCase().includes("venda")
-        ? "PRÉ-LANÇAMENTO"
-        : rawStatus;
-
-      return {
-        id: String(p.id),
-        title: p.title || p.name || "Empreendimento",
-        location: p.area || p.location || "Cariacica - ES",
-        area: p.area || p.location || "Cariacica - ES",
-        status,
-        image_url: p.image_url || p.image || FALLBACK_IMAGE,
-        lotes_totais: p.lotes_totais || 0,
-        lotes_disponiveis: p.lotes_disponiveis || 0,
-        progresso_agua: p.progresso_agua || 0,
-        progresso_saneamento: p.progresso_saneamento || 0,
-        progresso_pavimentacao: p.progresso_pavimentacao || 0,
-        progresso_energia: p.progresso_energia || 0,
-      };
-    };
 
     const fetchProjects = async () => {
       try {
@@ -96,19 +144,19 @@ export default function ExpansionSection() {
 
         if (error) throw error;
 
-        if (isMounted) {
-          setProjects((data || []).map(normalizeProject));
-        }
+        const baseProjects = (data || []).map(normalizeProject);
+        if (isMounted) setProjects(baseProjects);
+
+        const enrichedProjects = await Promise.all(
+          baseProjects.map(enrichAvailability)
+        );
+
+        if (isMounted) setProjects(enrichedProjects);
       } catch (error) {
         console.error("Erro ao buscar empreendimentos cadastrados:", error);
-
-        if (isMounted) {
-          setProjects([]);
-        }
+        if (isMounted) setProjects([]);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -155,10 +203,10 @@ export default function ExpansionSection() {
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             <span className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-tight leading-tight whitespace-nowrap">
-              Nossa Presença em
+              Nossa Presenca em
             </span>
             <span className="italic font-normal text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-none whitespace-nowrap">
-              Expansão
+              Expansao
             </span>
           </h2>
         </header>
@@ -174,6 +222,7 @@ export default function ExpansionSection() {
             );
             const barColor = getProgressColor(media);
             const isPreLaunch =
+              p.status?.toUpperCase() === "PRE-LANCAMENTO" ||
               p.status?.toUpperCase() === "PRÉ-LANÇAMENTO";
 
             return (
@@ -229,7 +278,7 @@ export default function ExpansionSection() {
                   {media > 0 && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#123AAA]">
-                        <span>Evolução da Obra</span>
+                        <span>Evolucao da Obra</span>
                         <span>{media}%</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -285,14 +334,14 @@ export default function ExpansionSection() {
               <div className="flex items-center gap-2 text-[#123AAA]/60 mb-2 justify-center md:justify-start">
                 <History size={20} />
                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">
-                  Patrimônio Universal
+                  Patrimonio Universal
                 </span>
               </div>
               <h2
                 className="text-3xl md:text-5xl font-bold text-[#123AAA]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
-                História em{" "}
+                Historia em{" "}
                 <span className="italic font-normal">Movimento</span>
               </h2>
             </div>
