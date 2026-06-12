@@ -39,6 +39,22 @@ export default function PageShell({ children }: PageShellProps) {
       <Navbar />
       <main className="flex-grow">{children}</main>
       <FooterSection />
+
+      {/* Mascote fixo ao lado do botão do Typebot */}
+      <img
+        src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
+        alt="Lotti"
+        style={{
+          position: 'fixed',
+          bottom: '10px',
+          right: '90px', // posicionado à esquerda do botão do Typebot
+          width: '110px',
+          height: '110px',
+          objectFit: 'contain',
+          zIndex: 9998,
+          pointerEvents: 'none', // não interfere nos cliques
+        }}
+      />
     </div>
   );
 }
