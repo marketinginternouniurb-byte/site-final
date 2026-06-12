@@ -28,6 +28,7 @@ function getYouTubeId(input?: string | null) {
 
   const value = input.trim();
 
+  // Aceita o ID puro: dQw4w9WgXcQ
   if (/^[a-zA-Z0-9_-]{11}$/.test(value)) {
     return value;
   }
@@ -35,11 +36,13 @@ function getYouTubeId(input?: string | null) {
   try {
     const url = new URL(value);
 
+    // youtube.com/watch?v=ID
     const watchId = url.searchParams.get('v');
     if (watchId && /^[a-zA-Z0-9_-]{11}$/.test(watchId)) {
       return watchId;
     }
 
+    // youtu.be/ID
     if (url.hostname.includes('youtu.be')) {
       const id = url.pathname.split('/').filter(Boolean)[0];
       if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) {
@@ -47,6 +50,7 @@ function getYouTubeId(input?: string | null) {
       }
     }
 
+    // youtube.com/embed/ID, /shorts/ID, /live/ID
     const parts = url.pathname.split('/').filter(Boolean);
     const markerIndex = parts.findIndex((part) =>
       ['embed', 'shorts', 'live'].includes(part)
@@ -87,6 +91,30 @@ function getCvcrmId(input?: string | null) {
   }
 }
 
+function normalizeText(value?: string | null) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function isAvailableUnit(unit: any) {
+  const status = normalizeText(
+    unit?.status ||
+      unit?.situacao ||
+      unit?.situacao_comercial ||
+      unit?.status_comercial
+  );
+
+  return (
+    status.includes("disponivel") ||
+    status.includes("liberado") ||
+    status.includes("a venda") ||
+    status.includes("venda")
+  );
+}
+
 function ProjectDetails() {
   const { id } = useParams({ from: '/empreendimento/$id' });
   const [project, setProject] = useState<any>(null);
@@ -96,32 +124,34 @@ function ProjectDetails() {
     const fetchProjectData = async () => {
       setLoading(true);
 
+      // 1. Buscar dados básicos do Supabase (para manter compatibilidade com o que já existe)
       const { data: dbData, error: dbError } = await supabase
         .from('properties')
         .select('*')
         .eq('id', id)
         .single();
 
+      // 2. Buscar dados em tempo real do CVCRM via Edge Function
       let cvData = null;
       const cvcrmId = getCvcrmId((dbData as any)?.cvcrm_url || (dbData as any)?.cvcrm_id);
 
       try {
         if (cvcrmId) {
           const { data: funcData, error: funcError } = await supabase.functions.invoke('sync-projects', {
-            method: 'GET',
-            queries: { id: cvcrmId },
+            method: 'POST',
+            body: { id: cvcrmId }
           });
-
           if (!funcError) cvData = funcData;
         }
       } catch (e) {
-        console.error('Erro ao buscar dados do CVCRM:', e);
+        console.error("Erro ao buscar dados do CVCRM:", e);
       }
 
       if (!dbError || cvData) {
         const baseData = dbData || {};
         const cvProject = cvData?.project || {};
-
+        
+        // Mesclar dados do banco local com os dados em tempo real do CVCRM
         setProject({
           ...baseData,
           id: baseData.id || cvProject.idempreendimento,
@@ -132,11 +162,11 @@ function ProjectDetails() {
           image_url: cvProject.foto_destaque || baseData.image_url,
           planta_url: baseData.planta_url,
           cvcrm_url: baseData.cvcrm_url,
-          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : baseData.gallery || [],
+          gallery: cvData?.gallery?.length > 0 ? cvData.gallery : (baseData.gallery || []),
           lotes_disponiveis: cvData?.stats?.available ?? baseData.lotes_disponiveis,
           lotes_totais: cvData?.stats?.total ?? baseData.lotes_totais,
           unidades: cvData?.units ?? [],
-          cv_id: cvProject.idempreendimento || cvcrmId,
+          cv_id: cvProject.idempreendimento || cvcrmId
         });
       }
 
@@ -183,7 +213,7 @@ function ProjectDetails() {
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#FAF9F6]">
         <Loader2 className="animate-spin text-[#123AAA] mb-4" size={48} />
         <p className="text-[#123AAA] font-bold uppercase tracking-widest text-xs">
-          Carregando empreendimento...
+          A carregar Ativo...
         </p>
       </div>
     );
@@ -218,280 +248,3 @@ function ProjectDetails() {
           >
             <ArrowLeft
               size={20}
-              className="group-hover:-translate-x-1 transition-transform"
-            />
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              Voltar aos lançamentos
-            </span>
-          </Link>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-            <div className="flex flex-col gap-8">
-              <div className="relative rounded-[40px] overflow-hidden shadow-2xl border-4 border-white aspect-square w-full bg-slate-100">
-                <img
-                  src={getOptimizedImageUrl(project.image_url, { width: 1200, quality: 82 })}
-                  alt={project.title}
-                  loading="eager"
-                  decoding="async"
-                  className="w-full h-full object-cover"
-                />
-
-                <div className="absolute top-6 left-6 bg-[#123AAA] text-white px-6 py-2 rounded-2xl shadow-xl border border-white/20 backdrop-blur-md">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-                    {project.status}
-                  </span>
-                </div>
-              </div>
-
-              {youtubeEmbedUrl && (
-                <div className="space-y-3">
-                  <div className="relative rounded-[40px] overflow-hidden shadow-xl border-4 border-white aspect-video w-full bg-slate-900">
-                    <iframe
-                      src={youtubeEmbedUrl}
-                      title={`Vídeo do empreendimento ${project.title}`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      className="absolute inset-0 w-full h-full"
-                    />
-                  </div>
-
-                  <a
-                    href={youtubeWatchUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-[#123AAA] hover:text-[#0a2570] font-black uppercase tracking-widest text-[10px] no-underline"
-                  >
-                    <PlayCircle size={15} />
-                    Abrir vídeo no YouTube
-                    <ExternalLink size={13} />
-                  </a>
-                </div>
-              )}
-
-              {project.planta_url && (
-                <div className="space-y-3">
-                  <div className="relative rounded-[40px] overflow-hidden shadow-xl border-4 border-white aspect-video w-full bg-slate-100">
-                    <img
-                      src={getOptimizedImageUrl(project.planta_url, { width: 1200, quality: 82 })}
-                      alt={`Planta do empreendimento ${project.title}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-contain bg-white"
-                    />
-                  </div>
-
-                  <a
-                    href={project.planta_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-[#123AAA] hover:text-[#0a2570] font-black uppercase tracking-widest text-[10px] no-underline"
-                  >
-                    Ver planta em tamanho real
-                    <ExternalLink size={13} />
-                  </a>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-8 lg:sticky lg:top-32">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-[#FFD700] text-[#123AAA] px-4 py-1.5 rounded-lg mb-6 font-bold text-[11px] uppercase tracking-widest shadow-sm antialiased">
-                  <Building2 size={14} />
-                  Empreendimento Premium
-                </div>
-
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#123AAA] uppercase tracking-tight leading-[1.1] mb-4 break-words">
-                  {project.title}
-                </h1>
-
-                <div className="flex items-center gap-2 text-[#123AAA]/60 font-bold uppercase text-xs">
-                  <MapPin size={16} className="text-[#FFD700]" />
-                  {project.area || project.location}
-                </div>
-              </div>
-
-              {(project.descricao || project.description) && (
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-4">
-                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-2 antialiased">
-                    <Info size={16} className="text-[#FFD700]" />
-                    Sobre o Projeto
-                  </h3>
-
-                  <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap font-medium antialiased">
-                    {project.descricao || project.description}
-                  </p>
-                </div>
-              )}
-
-              {project.gallery && project.gallery.length > 0 && (
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
-                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
-                    <Building2 size={16} className="text-[#FFD700]" />
-                    Galeria do Empreendimento
-                  </h3>
-
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {project.gallery.map((item: any, idx: number) => {
-                      const imgUrl = typeof item === 'string' ? item : item.url || item.arquivo || item.foto;
-                      if (!imgUrl) return null;
-
-                      return (
-                        <div
-                          key={idx}
-                          className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group cursor-pointer"
-                          onClick={() => window.open(imgUrl, '_blank')}
-                        >
-                          <img
-                            src={imgUrl}
-                            alt={`Foto ${idx + 1}`}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            loading="lazy"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
-                <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
-                  <HardHat size={16} className="text-[#FFD700]" />
-                  Infraestrutura e Obras
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ProgressItem
-                    label="Rede de Água"
-                    value={project.progresso_agua}
-                    icon={<Droplets size={16} />}
-                  />
-                  <ProgressItem
-                    label="Energia Elétrica"
-                    value={project.progresso_energia}
-                    icon={<Lightbulb size={16} />}
-                  />
-                  <ProgressItem
-                    label="Esgotamento"
-                    value={project.progresso_saneamento}
-                    icon={<Pickaxe size={16} />}
-                  />
-                  <ProgressItem
-                    label="Pavimentação"
-                    value={project.progresso_pavimentacao}
-                    icon={<Ruler size={16} />}
-                  />
-                </div>
-              </div>
-
-              {cvcrmMapUrl && (
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#123AAA]/5 space-y-6">
-                  <h3 className="text-[#123AAA] font-black text-[11px] md:text-xs uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 pb-4 mb-4 antialiased">
-                    <MapPin size={16} className="text-[#FFD700]" />
-                    Mapa Interativo e Disponibilidade
-                  </h3>
-
-                  <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
-                    <iframe
-                      src={cvcrmMapUrl}
-                      className="w-full h-full border-none"
-                      title="Mapa de disponibilidade"
-                      allowFullScreen
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-[#123AAA]/60">
-                      Selecione um lote disponível para agendar visita:
-                    </label>
-
-                    <select
-                      className="w-full p-4 rounded-xl border-2 border-[#123AAA]/10 bg-slate-50 font-bold text-[#123AAA] text-sm focus:border-[#FFD700] outline-none transition-all"
-                      onChange={(e) => {
-                        const lote = e.target.value;
-
-                        if (lote) {
-                          window.open(
-                            `https://wa.me/552728880001?text=${encodeURIComponent(
-                              `Olá! Tenho interesse em agendar uma visita para o lote ${lote} no empreendimento ${project.title}`
-                            )}`,
-                            '_blank'
-                          );
-                        }
-                      }}
-                    >
-                      <option value="">Ver lotes disponíveis...</option>
-                      {project.unidades
-                        ?.filter((u: any) => u.status === 'Disponível' || u.status === 'Disponivel')
-                        .map((u: any) => (
-                          <option key={u.id} value={u.label}>
-                            {u.label} - Disponível
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href={`https://wa.me/552728880001?text=${encodeURIComponent(
-                    `Olá! Tenho interesse no empreendimento ${project.title}`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 bg-[#123AAA] text-white text-center py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#0a2570] transition-all shadow-xl flex items-center justify-center gap-3 no-underline"
-                >
-                  Falar com Especialista
-                </a>
-
-                <div className="bg-white border-2 border-[#123AAA]/10 px-6 py-3 rounded-xl flex flex-col justify-center items-center min-w-[140px]">
-                  <span className="text-[9px] font-black text-[#123AAA]/40 uppercase text-center">
-                    Lotes Disp.
-                  </span>
-                  <span className="text-xl font-black text-[#123AAA] mt-0.5">
-                    {project.lotes_disponiveis}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <FooterSection />
-    </div>
-  );
-}
-
-function ProgressItem({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: any;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[#123AAA]/70">
-        <div className="flex items-center gap-2">
-          {icon}
-          {label}
-        </div>
-
-        <span>{value || 0}%</span>
-      </div>
-
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-[#FFD700] transition-all duration-1000 rounded-full"
-          style={{ width: `${value || 0}%` }}
-        />
-      </div>
-    </div>
-  );
-}
