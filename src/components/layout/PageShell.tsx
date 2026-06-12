@@ -10,16 +10,24 @@ export default function PageShell({ children }: PageShellProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Esconde o botão nativo do Typebot via CSS
+    // Move o botão nativo do Typebot para fora da tela (invisível mas clicável)
     const style = document.createElement("style");
-    style.innerHTML = `typebot-bubble { display: none !important; }`;
+    style.innerHTML = `
+      typebot-bubble {
+        position: fixed !important;
+        bottom: -9999px !important;
+        right: -9999px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    `;
     document.head.appendChild(style);
 
     const script = document.createElement("script");
     script.type = "module";
     script.innerHTML = `
       import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
-      Typebot.initBubble({
+      window.__typebot = await Typebot.initBubble({
         typebot: 'lotti-final-whats-app-sem-pergunta-web-com-telefone-r5u6gcg',
         apiHost: 'https://typebot.co',
         theme: {
@@ -32,7 +40,7 @@ export default function PageShell({ children }: PageShellProps) {
     `;
     document.body.appendChild(script);
 
-    const timer = setTimeout(() => setVisible(true), 1000);
+    const timer = setTimeout(() => setVisible(true), 1500);
 
     return () => {
       document.body.removeChild(script);
@@ -42,8 +50,20 @@ export default function PageShell({ children }: PageShellProps) {
   }, []);
 
   const handleOpen = () => {
-    const typebotBtn = document.querySelector('typebot-bubble')?.shadowRoot?.querySelector('button');
-    if (typebotBtn) typebotBtn.click();
+    // Usa a API do Typebot diretamente
+    try {
+      (window as any).Typebot?.open();
+    } catch {
+      // Fallback: clica no botão nativo mesmo offscreen
+      const typebotEl = document.querySelector('typebot-bubble') as any;
+      if (typebotEl?.shadowRoot) {
+        const btn = typebotEl.shadowRoot.querySelector('button');
+        if (btn) {
+          typebotEl.style.cssText = '';
+          btn.click();
+        }
+      }
+    }
   };
 
   return (
@@ -62,7 +82,6 @@ export default function PageShell({ children }: PageShellProps) {
             zIndex: 9999,
             display: 'flex',
             alignItems: 'flex-end',
-            gap: '0px',
             cursor: 'pointer',
             filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.3))',
           }}
@@ -80,7 +99,7 @@ export default function PageShell({ children }: PageShellProps) {
             }}
           />
 
-          {/* Botão amarelo estilo Typebot */}
+          {/* Botão amarelo */}
           <div style={{
             backgroundColor: '#F5C400',
             borderRadius: '50px',
@@ -91,7 +110,6 @@ export default function PageShell({ children }: PageShellProps) {
             border: '3px solid #1B3FA0',
             minWidth: '180px',
           }}>
-            {/* Ícone de chat */}
             <div style={{
               backgroundColor: '#1B3FA0',
               borderRadius: '50%',
@@ -106,8 +124,6 @@ export default function PageShell({ children }: PageShellProps) {
                 <path d="M12 2C6.48 2 2 6.03 2 11c0 2.62 1.19 4.98 3.07 6.61L4 22l4.62-1.54C9.96 20.81 10.97 21 12 21c5.52 0 10-4.03 10-9S17.52 2 12 2z" fill="#F5C400"/>
               </svg>
             </div>
-
-            {/* Texto */}
             <div>
               <div style={{
                 color: '#1B3FA0',
