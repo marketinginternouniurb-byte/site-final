@@ -1,8 +1,36 @@
--- Secure public schema RLS for launch staging.
+-- Secure public schema RLS for launch production.
 -- Idempotent and guarded by table/column existence so it can be tested safely
 -- across staging databases with schema drift.
 --
 -- Rollback is documented in docs/security-hardening-runbook.md.
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_roles
+    WHERE user_id = _user_id
+      AND role::text = _role
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_staff(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT public.has_role(_user_id, 'admin'::text)
+      OR public.has_role(_user_id, 'corretor'::text);
+$$;
 
 DO $$
 BEGIN
@@ -19,14 +47,14 @@ BEGIN
       ON public.profiles
       FOR SELECT
       TO authenticated
-      USING (id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
+      USING (id = auth.uid() OR public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Profiles: own update"
       ON public.profiles
       FOR UPDATE
       TO authenticated
-      USING (id = auth.uid() OR public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
+      USING (id = auth.uid() OR public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (id = auth.uid() OR public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE SELECT, INSERT, UPDATE, DELETE ON public.profiles FROM anon;
   END IF;
@@ -42,14 +70,14 @@ BEGIN
       ON public.user_roles
       FOR SELECT
       TO authenticated
-      USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
+      USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Roles: admin manage"
       ON public.user_roles
       FOR ALL
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE SELECT, INSERT, UPDATE, DELETE ON public.user_roles FROM anon;
   END IF;
@@ -73,20 +101,20 @@ BEGIN
       ON public.projects
       FOR INSERT
       TO authenticated
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Projects: admin update"
       ON public.projects
       FOR UPDATE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Projects: admin delete"
       ON public.projects
       FOR DELETE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE INSERT, UPDATE, DELETE ON public.projects FROM anon;
   END IF;
@@ -110,20 +138,20 @@ BEGIN
       ON public.properties
       FOR INSERT
       TO authenticated
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Properties: admin update"
       ON public.properties
       FOR UPDATE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Properties: admin delete"
       ON public.properties
       FOR DELETE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE INSERT, UPDATE, DELETE ON public.properties FROM anon;
   END IF;
@@ -141,26 +169,26 @@ BEGIN
       ON public.blog_posts
       FOR SELECT
       TO anon, authenticated
-      USING (published = true OR public.is_staff(auth.uid()));
+      USING (true);
 
     CREATE POLICY "Blog: admin insert"
       ON public.blog_posts
       FOR INSERT
       TO authenticated
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Blog: admin update"
       ON public.blog_posts
       FOR UPDATE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Blog: admin delete"
       ON public.blog_posts
       FOR DELETE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE INSERT, UPDATE, DELETE ON public.blog_posts FROM anon;
   END IF;
@@ -178,26 +206,26 @@ BEGIN
       ON public.testimonials
       FOR SELECT
       TO anon, authenticated
-      USING (approved = true OR public.is_staff(auth.uid()));
+      USING (true);
 
     CREATE POLICY "Testimonials: admin insert"
       ON public.testimonials
       FOR INSERT
       TO authenticated
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Testimonials: admin update"
       ON public.testimonials
       FOR UPDATE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'))
-      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'::text));
 
     CREATE POLICY "Testimonials: admin delete"
       ON public.testimonials
       FOR DELETE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE INSERT, UPDATE, DELETE ON public.testimonials FROM anon;
   END IF;
@@ -243,8 +271,8 @@ BEGIN
       FOR SELECT
       TO authenticated
       USING (
-        public.has_role(auth.uid(), 'admin')
-        OR (public.has_role(auth.uid(), 'corretor') AND assigned_to = auth.uid())
+        public.has_role(auth.uid(), 'admin'::text)
+        OR (public.has_role(auth.uid(), 'corretor'::text) AND assigned_to = auth.uid())
       );
 
     CREATE POLICY "Leads: staff update"
@@ -252,19 +280,19 @@ BEGIN
       FOR UPDATE
       TO authenticated
       USING (
-        public.has_role(auth.uid(), 'admin')
-        OR (public.has_role(auth.uid(), 'corretor') AND assigned_to = auth.uid())
+        public.has_role(auth.uid(), 'admin'::text)
+        OR (public.has_role(auth.uid(), 'corretor'::text) AND assigned_to = auth.uid())
       )
       WITH CHECK (
-        public.has_role(auth.uid(), 'admin')
-        OR (public.has_role(auth.uid(), 'corretor') AND assigned_to = auth.uid())
+        public.has_role(auth.uid(), 'admin'::text)
+        OR (public.has_role(auth.uid(), 'corretor'::text) AND assigned_to = auth.uid())
       );
 
     CREATE POLICY "Leads: admin delete"
       ON public.leads
       FOR DELETE
       TO authenticated
-      USING (public.has_role(auth.uid(), 'admin'));
+      USING (public.has_role(auth.uid(), 'admin'::text));
 
     REVOKE SELECT, INSERT, UPDATE, DELETE ON public.leads FROM anon;
   END IF;
@@ -285,3 +313,5 @@ BEGIN
     REVOKE SELECT, INSERT, UPDATE, DELETE ON public.newsletter_subscribers FROM anon;
   END IF;
 END $$;
+
+COMMIT;

@@ -10,6 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write ."
   },
+  "overrides": {
+    "esbuild": "0.28.1"
+  },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
     "@hookform/resolvers": "^5.2.2",
