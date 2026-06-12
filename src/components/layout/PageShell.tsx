@@ -18,13 +18,14 @@ export default function PageShell({ children }: PageShellProps) {
         theme: {
           button: {
             backgroundColor: '#F5C400',
-            customIconSrc: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjAgMkgyQzEuNDUgMiAxIDIuNDUgMSAzVjE3QzEgMTcuNTUgMS40NSAxOCAyIDE4SDZWMjJMMTAgMThIMjBDMjAuNTUgMTggMjEgMTcuNTUgMjEgMTdWM0MyMSAyLjQ1IDIwLjU1IDIgMjAgMloiIGZpbGw9IiMxQjNGQTAiLz48L3N2Zz4=',
+            customIconSrc: 'data:image/svg+xml,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M21%2015a4%204%200%200%201-4%204H8l-5%203V7a4%204%200%200%201%204-4h10a4%204%200%200%201%204%204v8Z%22%20stroke%3D%22%231B3FA0%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M8%209h8M8%2013h5%22%20stroke%3D%22%231B3FA0%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E',
             size: 'large',
           },
         },
       });
     `;
     document.body.appendChild(script);
+
     return () => {
       document.body.removeChild(script);
     };
@@ -36,53 +37,77 @@ export default function PageShell({ children }: PageShellProps) {
       <main className="flex-grow">{children}</main>
       <FooterSection />
 
-      {/* Wrapper fixo — tudo alinhado junto no canto */}
-      <div style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 9998,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        pointerEvents: 'none',
-        gap: '4px',
-      }}>
-        {/* Balão de fala */}
-        <div style={{
-          backgroundColor: '#1B3FA0',
-          color: '#fff',
-          borderRadius: '16px 16px 4px 16px',
-          padding: '10px 14px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          maxWidth: '160px',
-          textAlign: 'center',
-          marginRight: '10px',
-        }}>
-          <div style={{
-            fontSize: '10px',
-            fontWeight: 700,
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            color: '#F5C400',
-            marginBottom: '4px',
-          }}>
+      <div
+        style={{
+          position: "fixed",
+          right: "22px",
+          bottom: "96px",
+          zIndex: 9998,
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "flex-end",
+          gap: "8px",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            backgroundColor: "#1B3FA0",
+            color: "#fff",
+            borderRadius: "16px 16px 4px 16px",
+            padding: "10px 14px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            width: "160px",
+            textAlign: "center",
+            marginBottom: "42px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              color: "#F5C400",
+              marginBottom: "4px",
+            }}
+          >
             LOTTI
           </div>
-          <div style={{ fontSize: '12px', fontWeight: 600, lineHeight: '1.4' }}>
+
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              lineHeight: "1.35",
+            }}
+          >
             Encontre seu lote ideal! 😊
           </div>
+
+          <span
+            style={{
+              position: "absolute",
+              right: "-5px",
+              bottom: "18px",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#1B3FA0",
+              borderRadius: "2px",
+              transform: "rotate(45deg)",
+            }}
+          />
         </div>
 
-        {/* Mascote alinhado com o botão do Typebot */}
         <img
-          src="https://site-final.marketing-internouniurb.workers.dev/mascote-universal.png"
+          src="/mascote-universal.png"
           alt="Lotti"
           style={{
-            width: '130px',
-            height: '130px',
-            objectFit: 'contain',
-            marginRight: '8px',
+            width: "112px",
+            height: "112px",
+            objectFit: "contain",
+            display: "block",
           }}
         />
       </div>
