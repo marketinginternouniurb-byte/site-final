@@ -111,8 +111,8 @@ async function enrichAvailability(project: any) {
 
   try {
     const { data, error } = await supabase.functions.invoke("sync-projects", {
-      method: "GET",
-      queries: { id: project.cvcrm_id },
+      method: "POST",
+      body: { id: project.cvcrm_id },
     });
 
     if (error || !data) return project;
