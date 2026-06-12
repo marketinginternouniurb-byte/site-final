@@ -37,10 +37,97 @@ function getArrayPayload(payload: any) {
   if (Array.isArray(payload?.data)) return payload.data;
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.unidades)) return payload.unidades;
+  if (Array.isArray(payload?.lotes)) return payload.lotes;
   if (Array.isArray(payload?.empreendimentos)) return payload.empreendimentos;
   if (Array.isArray(payload?.dados?.unidades)) return payload.dados.unidades;
+  if (Array.isArray(payload?.dados?.lotes)) return payload.dados.lotes;
   if (Array.isArray(payload?.dados?.items)) return payload.dados.items;
   return [];
+}
+
+function isUnitLike(item: any) {
+  if (!item || typeof item !== "object") return false;
+
+  return Boolean(
+    item.idunidade ||
+      item.idunidade_int ||
+      item.unidade ||
+      item.nome ||
+      item.lote ||
+      item.numero ||
+      item.situacao ||
+      item.status ||
+      item.situacao_comercial ||
+      item.status_comercial ||
+      item.disponibilidade
+  );
+}
+
+function findArrays(payload: any, arrays: any[][] = [], depth = 0) {
+  if (!payload || depth > 8) return arrays;
+
+  if (Array.isArray(payload)) {
+    arrays.push(payload);
+    payload.forEach((item) => findArrays(item, arrays, depth + 1));
+    return arrays;
+  }
+
+  if (typeof payload !== "object") return arrays;
+
+  Object.values(payload).forEach((value) => {
+    if (Array.isArray(value)) arrays.push(value);
+    if (value && typeof value === "object") findArrays(value, arrays, depth + 1);
+  });
+
+  return arrays;
+}
+
+function getAvailabilityRows(payload: any) {
+  const directRows = getArrayPayload(payload);
+  const arrays = [directRows, ...findArrays(payload)].filter((rows) => rows.length > 0);
+
+  const unitArrays = arrays.filter((rows) => rows.some(isUnitLike));
+  const bestArray = (unitArrays.length > 0 ? unitArrays : arrays).sort(
+    (a, b) => b.length - a.length
+  )[0];
+
+  return bestArray || [];
+}
+
+function getNumberValue(value: any) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function getTotalFromPayload(payload: any, depth = 0): number | null {
+  if (!payload || typeof payload !== "object" || depth > 8) return null;
+
+  const totalKeys = [
+    "total",
+    "total_registros",
+    "total_registro",
+    "totalRegistros",
+    "total_lotes",
+    "lotes_totais",
+    "unidades_totais",
+    "total_unidades",
+    "quantidade_unidades",
+    "quantidade_lotes",
+    "qtd_unidades",
+    "qtd_lotes",
+  ];
+
+  for (const key of totalKeys) {
+    const value = getNumberValue(payload?.[key]);
+    if (value !== null) return value;
+  }
+
+  for (const value of Object.values(payload)) {
+    const nested = getTotalFromPayload(value, depth + 1);
+    if (nested !== null) return nested;
+  }
+
+  return null;
 }
 
 function getProjectPayload(payload: any, idEmpreendimento: string) {
@@ -176,13 +263,21 @@ serve(async (req) => {
       });
     }
 
-    const [legacyProject, legacyUnits, cvbotUnits, cvdwProjects] = await Promise.all([
+    const [legacyProject, legacyUnits, cvbotUnits, mapAvailability, cvdwProjects] = await Promise.all([
       fetchJson(`${baseUrl}/api/cvio/empreendimento?token=${encodedToken}&id=${encodedId}`),
       fetchJson(`${baseUrl}/api/cvio/unidade?token=${encodedToken}&idempreendimento=${encodedId}`),
       v1Headers
         ? fetchJson(`${baseUrl}/api/v1/cvbot/empreendimentos/${encodedId}/unidades`, {
             headers: v1Headers,
           })
+        : Promise.resolve({ ok: false, status: 0, data: null }),
+      v1Headers
+        ? fetchJson(
+            `${baseUrl}/api/v1/comercial/mapadisponibilidade/${encodedId}?limitePagina=500&pag=1`,
+            {
+              headers: v1Headers,
+            }
+          )
         : Promise.resolve({ ok: false, status: 0, data: null }),
       v1Headers
         ? fetchJson(`${baseUrl}/api/v1/cvdw/empreendimentos?pagina=1&registros_por_pagina=500`, {
@@ -200,9 +295,14 @@ serve(async (req) => {
 
     const legacyUnitRows = getArrayPayload(legacyUnits.data);
     const cvbotUnitRows = getArrayPayload(cvbotUnits.data);
-    const units = legacyUnitRows.length > 0 ? legacyUnitRows : cvbotUnitRows;
-    const availableUnits =
-      legacyUnitRows.length > 0 ? legacyUnitRows.filter(isAvailableUnit) : cvbotUnitRows;
+    const mapRows = getAvailabilityRows(mapAvailability.data);
+    const mapTotal = getTotalFromPayload(mapAvailability.data);
+    const units = mapRows.length > 0 ? mapRows : legacyUnitRows.length > 0 ? legacyUnitRows : cvbotUnitRows;
+    const availableUnits = cvbotUnitRows.length > 0
+      ? cvbotUnitRows
+      : legacyUnitRows.length > 0
+        ? legacyUnitRows.filter(isAvailableUnit)
+        : mapRows.filter(isAvailableUnit);
 
     const gallery = project?.fotos || project?.galeria || project?.imagens || [];
     const responseData = {
@@ -212,14 +312,15 @@ serve(async (req) => {
       },
       stats: {
         total:
-          units.length ||
+          mapTotal ||
+          mapRows.length ||
           Number(project?.unidades_totais || project?.total_unidades || project?.quantidade_unidades || 0),
         available:
           availableUnits.length ||
           Number(project?.unidades_disponiveis || project?.disponiveis || project?.quantidade_disponiveis || 0),
       },
       gallery,
-      units: units.map((unit: any) => ({
+      units: availableUnits.map((unit: any) => ({
         id: unit.idunidade || unit.id || unit.codigo || unit.referencia,
         label:
           unit.unidade ||
@@ -242,6 +343,9 @@ serve(async (req) => {
         legacyProjectStatus: legacyProject.status,
         legacyUnitsStatus: legacyUnits.status,
         cvbotUnitsStatus: cvbotUnits.status,
+        mapAvailabilityStatus: mapAvailability.status,
+        mapRows: mapRows.length,
+        mapTotal,
         cvdwProjectsStatus: cvdwProjects.status,
         hasCvcrmEmail: Boolean(cvcrmEmail),
       },
