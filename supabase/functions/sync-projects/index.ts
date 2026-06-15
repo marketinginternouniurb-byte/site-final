@@ -169,6 +169,63 @@ function getProjectPayload(payload: any, idEmpreendimento: string) {
   return payload?.dados || payload?.data || payload || {};
 }
 
+function isUpstreamErrorPayload(payload: any) {
+  if (!payload || typeof payload !== "object") return false;
+
+  const status = Number(payload.status || payload.code || payload.codigo);
+  const message = normalizeText(
+    payload.error ||
+      payload.message ||
+      payload.mensagem ||
+      payload.erro ||
+      payload.descricao
+  );
+
+  return (
+    (Number.isFinite(status) && status >= 400) ||
+    message.includes("method not allowed") ||
+    message.includes("dados invalidos") ||
+    message.includes("nao autorizado") ||
+    message.includes("unauthorized")
+  );
+}
+
+function hasProjectMetadata(payload: any) {
+  if (!payload || typeof payload !== "object" || isUpstreamErrorPayload(payload)) {
+    return false;
+  }
+
+  return Boolean(
+    payload.idempreendimento ||
+      payload.id ||
+      payload.codigo ||
+      payload.referencia ||
+      payload.nome ||
+      payload.titulo ||
+      payload.situacao ||
+      payload.cidade ||
+      payload.descricao ||
+      payload.foto_destaque ||
+      payload.foto ||
+      payload.imagem ||
+      payload.imagem_principal ||
+      payload.url_foto ||
+      payload.foto_url ||
+      payload.capa ||
+      payload.banner ||
+      payload.fotos ||
+      payload.galeria ||
+      payload.imagens
+  );
+}
+
+function getSafeProjectPayload(payload: any, idEmpreendimento: string) {
+  if (isUpstreamErrorPayload(payload)) return null;
+
+  const project = getProjectPayload(payload, idEmpreendimento);
+  return hasProjectMetadata(project) ? project : null;
+}
+
 function getImageUrlFromValue(value: any): string | null {
   if (!value) return null;
   if (typeof value === "string") return value;
@@ -307,12 +364,30 @@ serve(async (req) => {
         : Promise.resolve({ ok: false, status: 0, data: null }),
     ]);
 
-    const projectFromLegacy = getProjectPayload(legacyProject.data, idEmpreendimento);
-    const projectFromCvdw = getProjectPayload(cvdwProjects.data, idEmpreendimento);
+    const projectFromLegacy = getSafeProjectPayload(legacyProject.data, idEmpreendimento);
+    const projectFromCvdw = getSafeProjectPayload(cvdwProjects.data, idEmpreendimento);
+    const projectSources: Array<{ name: string; project: Record<string, unknown> | null }> = [
+      { name: "cvdw_projects", project: projectFromCvdw },
+      { name: "legacy_project", project: projectFromLegacy },
+    ];
+    const validProjectSources = projectSources.filter(
+      (source): source is { name: string; project: Record<string, unknown> } =>
+        Boolean(source.project)
+    );
     const project =
-      normalizeText(projectFromLegacy?.mensagem).includes("dados invalidos")
-        ? projectFromCvdw
-        : { ...projectFromCvdw, ...projectFromLegacy };
+      validProjectSources.length > 0
+        ? validProjectSources.reduce((acc, source) => ({ ...acc, ...source.project }), {})
+        : { idempreendimento: idEmpreendimento };
+
+    if (validProjectSources.length === 0) {
+      console.warn("sync-projects project metadata fallback", {
+        idEmpreendimento,
+        legacyProjectStatus: legacyProject.status,
+        cvdwProjectsStatus: cvdwProjects.status,
+        legacyProjectError: isUpstreamErrorPayload(legacyProject.data),
+        cvdwProjectsError: isUpstreamErrorPayload(cvdwProjects.data),
+      });
+    }
 
     const legacyUnitRows = getArrayPayload(legacyUnits.data);
     const cvbotUnitRows = getArrayPayload(cvbotUnits.data);
