@@ -32,9 +32,12 @@
         "SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
         "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
         "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAADlM-kb3xZFLVUpS",
         "LEAD_ALLOWED_ORIGINS": "https://site-final2.marketing-internouniurb.workers.dev",
         "LEAD_RATE_LIMIT_MAX": "12",
-        "LEAD_RATE_LIMIT_WINDOW_MS": "60000"
+        "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
+        "LEAD_DRY_RUN": "false",
+        "DRY_RUN": "false"
       }
     }
   }
