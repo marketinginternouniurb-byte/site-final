@@ -1,11 +1,44 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "site-final",
+  "name": "universal-site-staging",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
   "vars": {
-    "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z"
+    "SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+    "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+    "LEAD_RATE_LIMIT_MAX": "12",
+    "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
+    "LEAD_DRY_RUN": "true",
+    "DRY_RUN": "true"
+  },
+  "env": {
+    "staging": {
+      "name": "universal-site-staging",
+      "vars": {
+        "SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
+        "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+        "LEAD_RATE_LIMIT_MAX": "12",
+        "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
+        "LEAD_DRY_RUN": "true",
+        "DRY_RUN": "true"
+      }
+    },
+    "production": {
+      "name": "site-final2",
+      "vars": {
+        "SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "sb_publishable_YUWyZNk8vXuVwsjBqLvmfA_Swe2363Z",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAADlM-kb3xZFLVUpS",
+        "LEAD_ALLOWED_ORIGINS": "https://site-final2.marketing-internouniurb.workers.dev",
+        "LEAD_RATE_LIMIT_MAX": "12",
+        "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
+        "LEAD_DRY_RUN": "false",
+        "DRY_RUN": "false"
+      }
+    }
   }
 }

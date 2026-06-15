@@ -2,7 +2,7 @@
 import { type FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, MessageCircle, ShieldCheck } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
-import { supabase } from "../integrations/supabase/client";
+import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
 
 export const Route = createFileRoute("/facilita")({
   head: () => ({
@@ -32,12 +32,52 @@ const benefits = [
   "Processo claro, com apoio em cada próximo passo",
 ];
 
+type FacilitaLeadInput = {
+  nome: string;
+  whatsapp: string;
+  email: string;
+  interesse: string;
+  website: string;
+  turnstileToken: string;
+};
+
+export function buildFacilitaLeadPayload({
+  nome,
+  whatsapp,
+  email,
+  interesse,
+  website,
+  turnstileToken,
+}: FacilitaLeadInput) {
+  const message = `Olá! Quero entrar no programa Universal Facilita. Meu nome é ${nome}, meu WhatsApp é ${whatsapp}, meu e-mail é ${email} e tenho interesse em: ${interesse}.`;
+
+  return {
+    payload: {
+      name: nome,
+      phone: whatsapp,
+      email,
+      message,
+      origin: "Universal Facilita",
+      conversion: "Formulario Universal Facilita",
+      page: "/facilita",
+      website,
+      turnstileToken,
+      campos_adicionais: {
+        interesse,
+      },
+    },
+    whatsappUrl: `https://wa.me/552728880001?text=${encodeURIComponent(message)}`,
+  };
+}
+
 function Facilita() {
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [interesse, setInteresse] = useState("");
   const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,34 +93,56 @@ function Facilita() {
       return;
     }
 
+    if (!turnstileToken) {
+      alert("Conclua a validacao de seguranca para enviar.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("leads").insert([
-        {
-          name: nome,
-          phone: whatsapp,
-          email,
-          interest: `Facilita: ${interesse}`,
-        } as any,
-      ]);
-
-      if (error) {
-        console.warn("Lead Facilita Supabase insert skipped", {
-          code: error.code,
-          message: error.message,
-        });
-      }
-    } catch (error) {
-      console.warn("Lead Facilita Supabase insert failed", {
-        message: error instanceof Error ? error.message : "unknown",
+      const { payload, whatsappUrl } = buildFacilitaLeadPayload({
+        nome,
+        whatsapp,
+        email,
+        interesse,
+        website,
+        turnstileToken,
       });
+
+      const response = await fetch("/api/send-lead-to-cvcrm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(result?.error || "Nao foi possivel cadastrar o lead.");
+      }
+
+      setNome("");
+      setWhatsapp("");
+      setEmail("");
+      setInteresse("");
+      setWebsite("");
+      setAcceptedPrivacy(false);
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
+
+      window.location.href = whatsappUrl;
+    } catch (error) {
+      console.error("Erro no envio do Universal Facilita:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel enviar seus dados. Tente novamente.",
+      );
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
     } finally {
       setIsSubmitting(false);
     }
-
-    const message = `Olá! Quero entrar no programa Universal Facilita. Meu nome é ${nome}, meu WhatsApp é ${whatsapp}, meu e-mail é ${email} e tenho interesse em: ${interesse}.`;
-    window.location.href = `https://wa.me/552728880001?text=${encodeURIComponent(message)}`;
   };
 
   return (
@@ -212,6 +274,12 @@ function Facilita() {
                   <input type="checkbox" required checked={acceptedPrivacy} onChange={(event) => setAcceptedPrivacy(event.target.checked)} className="mt-1" />
                   <span>Li e aceito a <a href="/politica-de-privacidade" className="font-bold text-[#FFD700] hover:underline">Política de Privacidade e LGPD</a>.</span>
                 </label>
+                <TurnstileWidget
+                  value={turnstileToken}
+                  onChange={setTurnstileToken}
+                  resetSignal={turnstileReset}
+                  theme="dark"
+                />
                 {/* Botão */}
                 <button type="submit" disabled={isSubmitting} className="mt-4 flex w-full items-center justify-center gap-4 rounded-2xl bg-[#FFD700] px-6 py-5 text-sm font-black uppercase tracking-widest text-[#123AAA] transition-all hover:bg-[#ffe45c] disabled:cursor-not-allowed disabled:opacity-70">{isSubmitting ? "Enviando..." : "Quero entrar no programa"}</button>
               </form>

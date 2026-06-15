@@ -1,10 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://site-final2.marketing-internouniurb.workers.dev",
+  "https://site-final.marketing-internouniurb.workers.dev",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin")?.replace(/\/$/, "") || "";
+  const configured = (Deno.env.get("SYNC_ALLOWED_ORIGINS") || "")
+    .split(",")
+    .map((value) => value.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+  const allowedOrigins = configured.length > 0 ? configured : DEFAULT_ALLOWED_ORIGINS;
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Max-Age": "600",
+    "Vary": "Origin",
+  };
+}
 
 function normalizeText(value?: string | null) {
   return String(value || "")
@@ -150,6 +169,63 @@ function getProjectPayload(payload: any, idEmpreendimento: string) {
   return payload?.dados || payload?.data || payload || {};
 }
 
+function isUpstreamErrorPayload(payload: any) {
+  if (!payload || typeof payload !== "object") return false;
+
+  const status = Number(payload.status || payload.code || payload.codigo);
+  const message = normalizeText(
+    payload.error ||
+      payload.message ||
+      payload.mensagem ||
+      payload.erro ||
+      payload.descricao
+  );
+
+  return (
+    (Number.isFinite(status) && status >= 400) ||
+    message.includes("method not allowed") ||
+    message.includes("dados invalidos") ||
+    message.includes("nao autorizado") ||
+    message.includes("unauthorized")
+  );
+}
+
+function hasProjectMetadata(payload: any) {
+  if (!payload || typeof payload !== "object" || isUpstreamErrorPayload(payload)) {
+    return false;
+  }
+
+  return Boolean(
+    payload.idempreendimento ||
+      payload.id ||
+      payload.codigo ||
+      payload.referencia ||
+      payload.nome ||
+      payload.titulo ||
+      payload.situacao ||
+      payload.cidade ||
+      payload.descricao ||
+      payload.foto_destaque ||
+      payload.foto ||
+      payload.imagem ||
+      payload.imagem_principal ||
+      payload.url_foto ||
+      payload.foto_url ||
+      payload.capa ||
+      payload.banner ||
+      payload.fotos ||
+      payload.galeria ||
+      payload.imagens
+  );
+}
+
+function getSafeProjectPayload(payload: any, idEmpreendimento: string) {
+  if (isUpstreamErrorPayload(payload)) return null;
+
+  const project = getProjectPayload(payload, idEmpreendimento);
+  return hasProjectMetadata(project) ? project : null;
+}
+
 function getImageUrlFromValue(value: any): string | null {
   if (!value) return null;
   if (typeof value === "string") return value;
@@ -215,6 +291,8 @@ async function fetchJson(url: string, init?: RequestInit) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -286,12 +364,30 @@ serve(async (req) => {
         : Promise.resolve({ ok: false, status: 0, data: null }),
     ]);
 
-    const projectFromLegacy = getProjectPayload(legacyProject.data, idEmpreendimento);
-    const projectFromCvdw = getProjectPayload(cvdwProjects.data, idEmpreendimento);
+    const projectFromLegacy = getSafeProjectPayload(legacyProject.data, idEmpreendimento);
+    const projectFromCvdw = getSafeProjectPayload(cvdwProjects.data, idEmpreendimento);
+    const projectSources: Array<{ name: string; project: Record<string, unknown> | null }> = [
+      { name: "cvdw_projects", project: projectFromCvdw },
+      { name: "legacy_project", project: projectFromLegacy },
+    ];
+    const validProjectSources = projectSources.filter(
+      (source): source is { name: string; project: Record<string, unknown> } =>
+        Boolean(source.project)
+    );
     const project =
-      normalizeText(projectFromLegacy?.mensagem).includes("dados invalidos")
-        ? projectFromCvdw
-        : { ...projectFromCvdw, ...projectFromLegacy };
+      validProjectSources.length > 0
+        ? validProjectSources.reduce((acc, source) => ({ ...acc, ...source.project }), {})
+        : { idempreendimento: idEmpreendimento };
+
+    if (validProjectSources.length === 0) {
+      console.warn("sync-projects project metadata fallback", {
+        idEmpreendimento,
+        legacyProjectStatus: legacyProject.status,
+        cvdwProjectsStatus: cvdwProjects.status,
+        legacyProjectError: isUpstreamErrorPayload(legacyProject.data),
+        cvdwProjectsError: isUpstreamErrorPayload(cvdwProjects.data),
+      });
+    }
 
     const legacyUnitRows = getArrayPayload(legacyUnits.data);
     const cvbotUnitRows = getArrayPayload(cvbotUnits.data);
@@ -358,7 +454,11 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("sync-projects error", {
+      message: error instanceof Error ? error.message : "unknown",
+    });
+
+    return new Response(JSON.stringify({ error: "Erro ao sincronizar dados do CVCRM." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

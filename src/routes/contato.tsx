@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
+import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
 import { toast } from "sonner";
 
 const contact = {
@@ -37,6 +38,9 @@ const infos = [
 
 function Contato() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", origin: "Site" });
+  const [website, setWebsite] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -48,6 +52,11 @@ function Contato() {
       return;
     }
 
+    if (!turnstileToken) {
+      toast.error("Conclua a validacao de seguranca para enviar.");
+      return;
+    }
+
     setSending(true);
     try {
       const response = await fetch("/api/send-lead-to-cvcrm", {
@@ -55,7 +64,8 @@ function Contato() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          website: "",
+          website,
+          turnstileToken,
           conversion: "Formulario de contato",
           page: "/contato",
         }),
@@ -67,6 +77,9 @@ function Contato() {
 
       toast.success("Mensagem enviada! Em breve entraremos em contato.");
       setForm({ name: "", email: "", phone: "", message: "", origin: "Site" });
+      setWebsite("");
+      setTurnstileToken("");
+      setTurnstileReset((value) => value + 1);
       setAcceptedPrivacy(false);
     } catch (error) {
       console.error("Erro no envio:", error);
@@ -126,7 +139,16 @@ function Contato() {
           <div className="lg:col-span-2">
             <form onSubmit={onSubmit} className="bg-card border border-border rounded-2xl p-8 space-y-5">
               <h2 className="font-poppins text-2xl font-bold mb-2">Envie sua mensagem</h2>
-              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -199,6 +221,11 @@ function Contato() {
                   .
                 </span>
               </label>
+              <TurnstileWidget
+                value={turnstileToken}
+                onChange={setTurnstileToken}
+                resetSignal={turnstileReset}
+              />
             </form>
           </div>
         </div>
