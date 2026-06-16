@@ -8,6 +8,8 @@
     "SUPABASE_URL": "https://ftalrdptjbzmpxjgbzpq.supabase.co",
     "PUBLIC_SITE_URL": "https://universal-site-staging.marketing-internouniurb.workers.dev",
     "VITE_PUBLIC_SITE_URL": "https://universal-site-staging.marketing-internouniurb.workers.dev",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAADlM-kb3xZFLVUpS",
+    "PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAADlM-kb3xZFLVUpS",
     "LEAD_ALLOWED_ORIGINS": "https://universal-site-staging.marketing-internouniurb.workers.dev",
     "LEAD_RATE_LIMIT_MAX": "12",
     "LEAD_RATE_LIMIT_WINDOW_MS": "60000",
