@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { getOptimizedImageUrl } from '@/lib/images';
+import { absoluteUrl } from '@/lib/site-url';
 import {
   MapPin,
   Loader2,
@@ -21,6 +22,21 @@ import Navbar from '@/components/layout/Navbar';
 import FooterSection from '@/components/home/FooterSection';
 
 export const Route = createFileRoute('/empreendimento/$id')({
+  head: ({ params }) => ({
+    meta: [
+      { title: "Empreendimento - Universal Urbanismo" },
+      {
+        name: "description",
+        content: "Conheca detalhes, disponibilidade e infraestrutura do empreendimento Universal Urbanismo.",
+      },
+      { property: "og:title", content: "Empreendimento Universal Urbanismo" },
+      {
+        property: "og:description",
+        content: "Veja fotos, mapa 3D, lotes disponiveis e informacoes do empreendimento.",
+      },
+    ],
+    links: [{ rel: "canonical", href: absoluteUrl(`/empreendimento/${params.id}`) }],
+  }),
   component: ProjectDetails,
 });
 

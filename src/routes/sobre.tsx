@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import AnimatedCounter from "@/components/shared/AnimatedCounter";
+import { absoluteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/sobre")({
   head: () => ({
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/sobre")({
       { property: "og:image", content: "/sobre-universal-hero.webp" },
     ],
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/sobre" },
+      { rel: "canonical", href: absoluteUrl("/sobre") },
     ],
   }),
   component: Sobre,

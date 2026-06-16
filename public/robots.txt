@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /login
 
 Sitemap: https://site-final2.marketing-internouniurb.workers.dev/sitemap.xml

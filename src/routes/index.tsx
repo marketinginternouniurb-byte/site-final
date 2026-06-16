@@ -5,11 +5,12 @@ import AboutPreview from "@/components/home/AboutPreview";
 import ExpansionSection from "@/components/home/ExpansionSection"; 
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import BlogPreview from "@/components/home/BlogPreview";
+import { absoluteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/" },
+      { rel: "canonical", href: absoluteUrl("/") },
     ],
   }),
   component: Index,

@@ -3,6 +3,7 @@ import { type FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, MessageCircle, ShieldCheck } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
+import { absoluteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/facilita")({
   head: () => ({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/facilita")({
       },
     ],
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/facilita" },
+      { rel: "canonical", href: absoluteUrl("/facilita") },
     ],
   }),
   component: Facilita,

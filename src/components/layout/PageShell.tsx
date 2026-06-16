@@ -1,15 +1,39 @@
 import React, { useEffect } from "react";
-import Navbar from "./Navbar";
 import FooterSection from "@/components/home/FooterSection";
+import { readCookieConsent, type CookieConsentPreferences } from "@/lib/cookie-consent";
+import Navbar from "./Navbar";
+
 interface PageShellProps {
   children: React.ReactNode;
 }
+
 export default function PageShell({ children }: PageShellProps) {
+  const [typebotAllowed, setTypebotAllowed] = React.useState(false);
+
   useEffect(() => {
+    const updateTypebotPermission = (preferences?: CookieConsentPreferences | null) => {
+      const current = preferences ?? readCookieConsent();
+      setTypebotAllowed(Boolean(current?.marketing));
+    };
+
+    updateTypebotPermission();
+
+    const onConsentUpdate = (event: Event) => {
+      updateTypebotPermission((event as CustomEvent<CookieConsentPreferences>).detail);
+    };
+
+    window.addEventListener("universal:cookie-consent-updated", onConsentUpdate);
+    return () => window.removeEventListener("universal:cookie-consent-updated", onConsentUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (!typebotAllowed) return undefined;
+
     const TYPEBOT_VERSION = "lotti-avatar-v9";
     const shouldResetTypebot =
       localStorage.getItem("lotti-typebot-version") !== TYPEBOT_VERSION;
     const script = document.createElement("script");
+    script.id = "lotti-typebot-loader";
     script.type = "module";
     script.innerHTML = `
       import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js';
@@ -38,85 +62,89 @@ export default function PageShell({ children }: PageShellProps) {
     document.body.appendChild(script);
     localStorage.setItem("lotti-typebot-version", TYPEBOT_VERSION);
     return () => {
-      document.body.removeChild(script);
+      script.remove();
     };
-  }, []);
+  }, [typebotAllowed]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
       <Navbar />
       <main className="flex-grow">{children}</main>
       <FooterSection />
-      <div
-        style={{
-          position: "fixed",
-          right: "22px",
-          bottom: "96px",
-          zIndex: 9998,
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "flex-end",
-          gap: "8px",
-          pointerEvents: "none",
-        }}
-      >
+
+      {typebotAllowed && (
         <div
           style={{
-            position: "relative",
-            backgroundColor: "#1B3FA0",
-            color: "#fff",
-            borderRadius: "16px 16px 4px 16px",
-            padding: "10px 14px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            width: "160px",
-            textAlign: "center",
-            marginBottom: "42px",
+            position: "fixed",
+            right: "22px",
+            bottom: "96px",
+            zIndex: 9998,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "flex-end",
+            gap: "8px",
+            pointerEvents: "none",
           }}
         >
           <div
             style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "1px",
-              textTransform: "uppercase",
-              color: "#F5C400",
-              marginBottom: "4px",
-            }}
-          >
-            LOTTI
-          </div>
-          <div
-            style={{
-              fontSize: "12px",
-              fontWeight: 600,
-              lineHeight: "1.35",
-            }}
-          >
-            Encontre seu lote ideal! 😊
-          </div>
-          <span
-            style={{
-              position: "absolute",
-              right: "-5px",
-              bottom: "18px",
-              width: "12px",
-              height: "12px",
+              position: "relative",
               backgroundColor: "#1B3FA0",
-              borderRadius: "2px",
-              transform: "rotate(45deg)",
+              color: "#fff",
+              borderRadius: "16px 16px 4px 16px",
+              padding: "10px 14px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              width: "160px",
+              textAlign: "center",
+              marginBottom: "42px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                color: "#F5C400",
+                marginBottom: "4px",
+              }}
+            >
+              LOTTI
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                fontWeight: 600,
+                lineHeight: "1.35",
+              }}
+            >
+              Encontre seu lote ideal! 😊
+            </div>
+            <span
+              style={{
+                position: "absolute",
+                right: "-5px",
+                bottom: "18px",
+                width: "12px",
+                height: "12px",
+                backgroundColor: "#1B3FA0",
+                borderRadius: "2px",
+                transform: "rotate(45deg)",
+              }}
+            />
+          </div>
+          <img
+            src="/mascote-universal.png?v=6"
+            alt="Lotti"
+            style={{
+              width: "112px",
+              height: "112px",
+              objectFit: "contain",
+              display: "block",
             }}
           />
         </div>
-        <img
-          src="/mascote-universal.png?v=6"
-          alt="Lotti"
-          style={{
-            width: "112px",
-            height: "112px",
-            objectFit: "contain",
-            display: "block",
-          }}
-        />
-      </div>
+      )}
     </div>
   );
 }

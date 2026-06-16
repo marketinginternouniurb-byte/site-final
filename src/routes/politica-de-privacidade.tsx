@@ -13,6 +13,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
+import { absoluteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/politica-de-privacidade")({
   head: () => ({
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/politica-de-privacidade")({
       },
     ],
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/politica-de-privacidade" },
+      { rel: "canonical", href: absoluteUrl("/politica-de-privacidade") },
     ],
   }),
   component: PoliticaDePrivacidade,
@@ -104,7 +105,7 @@ const sections = [
     title: "5. Compartilhamento e transferência de dados",
     text: [
       "Dados pessoais podem ser compartilhados com colaboradores, consultores, prestadores de serviço, parceiros comerciais, instituições financeiras, cartórios, órgãos públicos, autoridades administrativas ou judiciais, sempre que necessário para cumprir as finalidades desta política ou exigências legais.",
-      "O site utiliza fornecedores de infraestrutura e tecnologia, como Supabase, provedores de hospedagem, Google Fonts e serviços externos acessados voluntariamente pelo usuário, como WhatsApp, Instagram, Facebook, TikTok e YouTube. Esses serviços podem tratar dados conforme suas próprias políticas quando o usuário interage com eles.",
+      "O site utiliza fornecedores de infraestrutura, atendimento e tecnologia, como Supabase, Cloudflare, CVCRM, Typebot, provedores de hospedagem, Google Fonts e serviços externos acessados voluntariamente pelo usuário, como WhatsApp, Instagram, Facebook, TikTok e YouTube. Esses serviços podem tratar dados conforme suas próprias políticas quando o usuário interage com eles.",
       "A Universal Urbanismo não vende nem aluga dados pessoais. O compartilhamento para ações de marketing de terceiros depende de consentimento prévio do titular.",
       "Algumas informações podem ser armazenadas ou processadas em servidores no Brasil ou no exterior, desde que adotadas salvaguardas compatíveis com a LGPD.",
     ],
@@ -137,7 +138,8 @@ const sections = [
     text: [
       "O site utiliza uma ferramenta de consentimento para registrar preferências de cookies. Cookies essenciais permanecem ativos porque são necessários para segurança, funcionamento, login administrativo, prevenção de abusos e registro da própria preferência de privacidade.",
       "A preferência é registrada pelo cookie essencial universal_cookie_consent e por armazenamento local equivalente. A autenticação administrativa do Supabase também pode usar localStorage para manter a sessão de usuários autorizados.",
-      "Cookies de analytics e marketing permanecem desativados por padrão e só podem ser usados após autorização do usuário. Atualmente, o site não carrega scripts próprios de analytics ou pixels de marketing antes dessa autorização.",
+      "Cookies de analytics e marketing permanecem desativados por padrão e só podem ser usados após autorização do usuário. O chat Lotti/Typebot é tratado como recurso externo de atendimento e marketing e só é carregado após consentimento para marketing.",
+      "Quando o usuário envia formulários ou interage com atendimento comercial, os dados podem ser encaminhados ao CVCRM para gestão de relacionamento, retorno comercial e acompanhamento do interesse informado.",
       "As preferências são armazenadas em cookie e localStorage do navegador. O usuário pode revisar ou alterar sua escolha a qualquer momento pelo link “Revisar cookies” no rodapé.",
       "O usuário também pode configurar o navegador para bloquear ou excluir cookies. Algumas funcionalidades do site podem não funcionar corretamente caso cookies essenciais sejam desativados.",
     ],

@@ -4,7 +4,12 @@ import { LayoutDashboard, Building2, Users, FileText, MessageSquare, UserCog, Us
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Painel — Universal" }] }),
+  head: () => ({
+    meta: [
+      { title: "Painel — Universal" },
+      { name: "robots", content: "noindex,nofollow,noarchive" },
+    ],
+  }),
   component: AdminLayout,
 });
 

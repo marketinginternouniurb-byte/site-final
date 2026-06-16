@@ -10,6 +10,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import CookieConsent from "@/components/shared/CookieConsent";
+import { absoluteUrl } from "@/lib/site-url";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -58,8 +59,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         property: "og:description",
         content: "Conheca empreendimentos, condicoes e atendimento da Universal Urbanismo.",
       },
-      { property: "og:url", content: "https://site-final2.marketing-internouniurb.workers.dev/" },
-      { property: "og:image", content: "https://site-final2.marketing-internouniurb.workers.dev/logo-escrita2.png" },
+      { property: "og:url", content: absoluteUrl("/") },
+      { property: "og:image", content: absoluteUrl("/logo-escrita2.png") },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],

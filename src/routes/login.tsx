@@ -6,7 +6,12 @@ import { bootstrapFirstAdmin, hasAnyAdmin } from "@/lib/admin-users.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Login — Painel Universal" }] }),
+  head: () => ({
+    meta: [
+      { title: "Login — Painel Universal" },
+      { name: "robots", content: "noindex,nofollow,noarchive" },
+    ],
+  }),
   component: LoginPage,
 });
 

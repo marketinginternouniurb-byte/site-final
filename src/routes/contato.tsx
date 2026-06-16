@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { TurnstileWidget } from "@/components/shared/TurnstileWidget";
+import { absoluteUrl } from "@/lib/site-url";
 import { toast } from "sonner";
 
 const contact = {
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/contato")({
       { property: "og:description", content: "Fale com nossos consultores em Vitória-ES." },
     ],
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/contato" },
+      { rel: "canonical", href: absoluteUrl("/contato") },
     ],
   }),
   component: Contato,

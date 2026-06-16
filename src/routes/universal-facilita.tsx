@@ -1,6 +1,7 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, Home, MapPin, ShieldCheck, Sparkles } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
+import { absoluteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/universal-facilita")({
   head: () => ({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/universal-facilita")({
       },
     ],
     links: [
-      { rel: "canonical", href: "https://site-final2.marketing-internouniurb.workers.dev/universal-facilita" },
+      { rel: "canonical", href: absoluteUrl("/universal-facilita") },
     ],
   }),
   component: UniversalSimplifica,

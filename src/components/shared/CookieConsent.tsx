@@ -22,7 +22,7 @@ const categoryCopy = [
   {
     key: "marketing" as const,
     title: "Marketing",
-    text: "Reservado para pixels e campanhas. Só funciona com autorização expressa.",
+    text: "Autoriza recursos externos de atendimento e campanha, como o chat Lotti/Typebot. Só funciona com autorização expressa.",
   },
 ];
 

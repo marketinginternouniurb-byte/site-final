@@ -9,10 +9,23 @@ type ServerEntry = {
 };
 
 type RuntimeEnv = {
+  PUBLIC_SITE_URL?: string;
+  SITE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
+  SUPABASE_URL?: string;
+  VITE_PUBLIC_SITE_URL?: string;
+  VITE_SITE_URL?: string;
+  VITE_SUPABASE_ANON_KEY?: string;
+  VITE_SUPABASE_URL?: string;
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
+  PUBLIC_TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SITE_KEY?: string;
+  VITE_TURNSTILE_SITE_KEY?: string;
 };
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
+const DEFAULT_TURNSTILE_SITE_KEY = "0x4AAAAAADlM-kb3xZFLVUpS";
+const DEFAULT_SITE_URL = "https://site-final2.marketing-internouniurb.workers.dev";
 
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
@@ -32,18 +45,123 @@ function brandedErrorResponse(): Response {
 
 function publicConfigResponse(envInput: unknown): Response {
   const env = (envInput ?? {}) as RuntimeEnv;
+  const turnstileSiteKey =
+    env.TURNSTILE_SITE_KEY ||
+    env.VITE_TURNSTILE_SITE_KEY ||
+    env.PUBLIC_TURNSTILE_SITE_KEY ||
+    env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+    DEFAULT_TURNSTILE_SITE_KEY;
 
   return Response.json(
     {
-      turnstileSiteKey: env.TURNSTILE_SITE_KEY ?? "",
+      turnstileSiteKey,
     },
     {
       headers: {
         "cache-control": "no-store",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
         "x-content-type-options": "nosniff",
       },
     },
   );
+}
+
+function resolveSiteUrl(envInput: unknown, request: Request) {
+  const env = (envInput ?? {}) as RuntimeEnv;
+  const configured =
+    env.PUBLIC_SITE_URL ||
+    env.VITE_PUBLIC_SITE_URL ||
+    env.SITE_URL ||
+    env.VITE_SITE_URL;
+  const fallback = new URL(request.url).origin || DEFAULT_SITE_URL;
+  return (configured || fallback || DEFAULT_SITE_URL).replace(/\/+$/, "");
+}
+
+function xmlEscape(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+async function fetchPublicProjectIds(envInput: unknown): Promise<string[]> {
+  const env = (envInput ?? {}) as RuntimeEnv;
+  const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  const anonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) return [];
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/properties?select=id&order=created_at.desc`,
+      {
+        headers: {
+          apikey: anonKey,
+          authorization: `Bearer ${anonKey}`,
+        },
+      },
+    );
+
+    if (!response.ok) return [];
+    const rows = (await response.json()) as Array<{ id?: string | number | null }>;
+    return rows
+      .map((row) => row.id)
+      .filter((id): id is string | number => id !== null && id !== undefined)
+      .map(String);
+  } catch (error) {
+    console.warn("Nao foi possivel montar sitemap dinamico de empreendimentos.", error);
+    return [];
+  }
+}
+
+async function sitemapResponse(request: Request, envInput: unknown): Promise<Response> {
+  const siteUrl = resolveSiteUrl(envInput, request);
+  const today = new Date().toISOString().slice(0, 10);
+  const staticRoutes = [
+    { path: "/", changefreq: "weekly", priority: "1.0" },
+    { path: "/sobre", changefreq: "monthly", priority: "0.8" },
+    { path: "/contato", changefreq: "monthly", priority: "0.8" },
+    { path: "/facilita", changefreq: "monthly", priority: "0.7" },
+    { path: "/universal-facilita", changefreq: "monthly", priority: "0.7" },
+    { path: "/politica-de-privacidade", changefreq: "yearly", priority: "0.5" },
+  ];
+  const projectRoutes = (await fetchPublicProjectIds(envInput)).map((id) => ({
+    path: `/empreendimento/${encodeURIComponent(id)}`,
+    changefreq: "daily",
+    priority: "0.8",
+  }));
+  const urls = [...staticRoutes, ...projectRoutes]
+    .map(
+      (route) => `  <url>
+    <loc>${xmlEscape(`${siteUrl}${route.path}`)}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${route.changefreq}</changefreq>
+    <priority>${route.priority}</priority>
+  </url>`,
+    )
+    .join("\n");
+
+  return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, {
+    headers: {
+      "cache-control": "public, max-age=900",
+      "content-type": "application/xml; charset=utf-8",
+      "strict-transport-security": "max-age=31536000; includeSubDomains",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
+function robotsResponse(request: Request, envInput: unknown): Response {
+  const siteUrl = resolveSiteUrl(envInput, request);
+  return new Response(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /login\n\nSitemap: ${siteUrl}/sitemap.xml\n`, {
+    headers: {
+      "cache-control": "public, max-age=900",
+      "content-type": "text/plain; charset=utf-8",
+      "strict-transport-security": "max-age=31536000; includeSubDomains",
+      "x-content-type-options": "nosniff",
+    },
+  });
 }
 
 function applySecurityHeaders(request: Request, response: Response): Response {
@@ -51,6 +169,7 @@ function applySecurityHeaders(request: Request, response: Response): Response {
   const headers = new Headers(response.headers);
 
   headers.set("x-content-type-options", "nosniff");
+  headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
   headers.set("referrer-policy", "strict-origin-when-cross-origin");
   headers.set(
     "permissions-policy",
@@ -73,10 +192,12 @@ function applySecurityHeaders(request: Request, response: Response): Response {
     "upgrade-insecure-requests",
   ].join("; ");
 
+  headers.set("content-security-policy", cspReportOnly);
   headers.set("content-security-policy-report-only", cspReportOnly);
 
-  if (url.pathname.startsWith("/admin")) {
+  if (url.pathname.startsWith("/admin") || url.pathname === "/login") {
     headers.set("cache-control", "no-store");
+    headers.set("x-robots-tag", "noindex, nofollow, noarchive");
   }
 
   return new Response(response.body, {
@@ -136,6 +257,12 @@ export default {
       }
       if (url.pathname === "/api/security-config") {
         return publicConfigResponse(env);
+      }
+      if (url.pathname === "/robots.txt") {
+        return robotsResponse(request, env);
+      }
+      if (url.pathname === "/sitemap.xml") {
+        return await sitemapResponse(request, env);
       }
 
       const handler = await getServerEntry();
