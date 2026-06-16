@@ -111,8 +111,8 @@ function Contato() {
             {infos.map((info, i) => (
               <motion.div
                 key={info.title}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
                 className="bg-card border border-border rounded-xl p-5 flex items-start gap-4"
