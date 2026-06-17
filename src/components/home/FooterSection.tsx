@@ -82,7 +82,7 @@ export default function FooterSection() {
             <img 
               src="https://ftalrdptjbzmpxjgbzpq.supabase.co/storage/v1/object/public/project-images/1.3.svg" 
               alt="Universal Urbanismo" 
-              className="h-14 w-auto object-contain brightness-0 invert" 
+              className="h-14 w-full max-w-[220px] object-contain brightness-0 invert"
             />
             
             <div className="space-y-4">

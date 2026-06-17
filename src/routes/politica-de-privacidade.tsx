@@ -167,26 +167,26 @@ function PoliticaDePrivacidade() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,215,0,0.18),transparent_32%),linear-gradient(135deg,rgba(18,58,170,0.98),rgba(7,25,71,1))]" />
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#FAF9F6] to-transparent" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-40 pb-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-40 pb-24 min-w-0">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="max-w-4xl"
+            className="max-w-4xl min-w-0"
           >
-            <div className="inline-flex items-center gap-2 bg-[#FFD700] text-[#123AAA] px-4 py-2 rounded-lg mb-6">
+            <div className="inline-flex max-w-full items-center gap-2 bg-[#FFD700] text-[#123AAA] px-3 sm:px-4 py-2 rounded-lg mb-6">
               <ShieldCheck size={16} />
-              <span className="text-[10px] font-black uppercase tracking-[0.22em]">
+              <span className="text-[10px] font-black uppercase tracking-wider sm:tracking-[0.22em] break-words">
                 Privacidade e LGPD
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.98] mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.98] mb-6 break-words">
               Política de Privacidade
               <span className="block text-[#FFD700]">Universal Urbanismo</span>
             </h1>
 
-            <p className="text-base md:text-xl text-white/85 max-w-3xl leading-relaxed font-medium">
+            <p className="text-base md:text-xl text-white/85 max-w-3xl leading-relaxed font-medium break-words">
               Transparência sobre como tratamos dados pessoais, protegemos
               informações e respeitamos os direitos previstos na Lei Geral de
               Proteção de Dados.
@@ -195,8 +195,8 @@ function PoliticaDePrivacidade() {
         </div>
       </section>
 
-      <section className="relative -mt-10 pb-16 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="relative -mt-10 pb-16 px-4 sm:px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
           {highlights.map((item, index) => (
             <motion.div
               key={item.title}
@@ -204,13 +204,13 @@ function PoliticaDePrivacidade() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
-              className="bg-white border border-[#123AAA]/10 rounded-[28px] p-7 shadow-xl"
+              className="bg-white border border-[#123AAA]/10 rounded-[28px] p-5 sm:p-7 shadow-xl min-w-0"
             >
               <item.icon className="w-8 h-8 text-[#FFD700] mb-5" />
-              <h2 className="text-xl font-black text-[#123AAA] uppercase tracking-tight mb-3">
+              <h2 className="text-xl font-black text-[#123AAA] uppercase tracking-tight mb-3 break-words">
                 {item.title}
               </h2>
-              <p className="text-sm text-gray-600 leading-relaxed font-medium">
+              <p className="text-sm text-gray-600 leading-relaxed font-medium break-words">
                 {item.text}
               </p>
             </motion.div>
@@ -218,21 +218,21 @@ function PoliticaDePrivacidade() {
         </div>
       </section>
 
-      <section className="py-12 px-6 bg-[#FAF9F6]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <section className="py-12 px-4 sm:px-6 bg-[#FAF9F6] overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start min-w-0">
           <aside className="lg:col-span-4 lg:sticky lg:top-32">
-            <div className="bg-[#123AAA] text-white rounded-[32px] p-8">
-              <span className="text-[10px] font-black uppercase tracking-[0.28em] text-[#FFD700]">
+            <div className="bg-[#123AAA] text-white rounded-[32px] p-5 sm:p-8 min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-wider sm:tracking-[0.28em] text-[#FFD700] break-words">
                 Controladora
               </span>
-              <h2 className="text-2xl font-black uppercase tracking-tight mt-3 mb-5">
+              <h2 className="text-2xl font-black uppercase tracking-tight mt-3 mb-5 break-words">
                 Imobiliária e Construtora Universal Ltda
               </h2>
               <div className="space-y-5 text-sm text-white/80 font-medium leading-relaxed">
                 <p>CNPJ nº 37.060.640/0001-05</p>
                 <div className="flex gap-3">
                   <MapPin className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5" />
-                  <p>
+                  <p className="break-words">
                     Av. Desembargador Mário da Silva Nunes, 717, Sala 1001,
                     Torre Sul, Jardim Limoeiro, Serra - ES, CEP 29.164-044
                   </p>
@@ -241,7 +241,7 @@ function PoliticaDePrivacidade() {
                   <Mail className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5" />
                   <a
                     href="mailto:universal@universalurbanismo.com"
-                    className="hover:text-[#FFD700] transition-colors"
+                    className="hover:text-[#FFD700] transition-colors break-all"
                   >
                     universal@universalurbanismo.com
                   </a>
@@ -250,7 +250,7 @@ function PoliticaDePrivacidade() {
             </div>
           </aside>
 
-          <div className="lg:col-span-8 space-y-5">
+          <div className="lg:col-span-8 space-y-5 min-w-0">
             {sections.map((section, index) => (
               <motion.article
                 key={section.title}
@@ -258,14 +258,14 @@ function PoliticaDePrivacidade() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.03 }}
-                className="bg-white border border-[#123AAA]/10 rounded-[28px] p-7 md:p-8 shadow-sm"
+                className="bg-white border border-[#123AAA]/10 rounded-[28px] p-5 sm:p-7 md:p-8 shadow-sm min-w-0"
               >
                 <div className="flex flex-col sm:flex-row gap-5">
                   <div className="w-12 h-12 rounded-2xl bg-[#FFD700] text-[#123AAA] flex items-center justify-center shrink-0">
                     <section.icon size={24} strokeWidth={2.5} />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-2xl font-black text-[#123AAA] uppercase tracking-tight mb-4">
+                    <h2 className="text-2xl font-black text-[#123AAA] uppercase tracking-tight mb-4 break-words">
                       {section.title}
                     </h2>
                     {section.text && (
@@ -273,7 +273,7 @@ function PoliticaDePrivacidade() {
                         {section.text.map((paragraph) => (
                           <p
                             key={paragraph}
-                            className="text-gray-600 leading-relaxed font-medium"
+                            className="text-gray-600 leading-relaxed font-medium break-words"
                           >
                             {paragraph}
                           </p>
@@ -283,9 +283,9 @@ function PoliticaDePrivacidade() {
                     {section.list && (
                       <ul className="space-y-3">
                         {section.list.map((item) => (
-                          <li key={item} className="flex gap-3 text-gray-600">
+                          <li key={item} className="flex gap-3 text-gray-600 min-w-0">
                             <span className="mt-2 h-2 w-2 rounded-full bg-[#FFD700] shrink-0" />
-                            <span className="leading-relaxed font-medium">
+                            <span className="leading-relaxed font-medium break-words min-w-0">
                               {item}
                             </span>
                           </li>
@@ -300,20 +300,20 @@ function PoliticaDePrivacidade() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto bg-[#FFD700] rounded-[36px] p-8 md:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-8">
-            <span className="text-[10px] font-black uppercase tracking-[0.28em] text-[#123AAA]/65">
+      <section className="py-20 px-4 sm:px-6 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto bg-[#FFD700] rounded-[36px] p-5 sm:p-8 md:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-w-0">
+          <div className="lg:col-span-8 min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-wider sm:tracking-[0.28em] text-[#123AAA]/65 break-words">
               Exercício de direitos
             </span>
-            <h2 className="text-3xl md:text-5xl font-black text-[#123AAA] uppercase tracking-tight leading-tight mt-4">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-[#123AAA] uppercase tracking-tight leading-tight mt-4 break-words">
               Quer falar sobre seus dados pessoais?
             </h2>
           </div>
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 min-w-0">
             <a
               href="mailto:universal@universalurbanismo.com"
-              className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-[#123AAA] px-6 py-4 text-white font-black uppercase tracking-widest text-xs hover:bg-[#0d2f89] transition"
+              className="inline-flex w-full min-w-0 items-center justify-center gap-3 rounded-2xl bg-[#123AAA] px-4 sm:px-6 py-4 text-white font-black uppercase tracking-wider sm:tracking-widest text-xs hover:bg-[#0d2f89] transition text-center break-words"
             >
               <Mail size={18} />
               Enviar solicitação

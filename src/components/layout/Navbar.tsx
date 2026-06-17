@@ -36,18 +36,18 @@ export default function Navbar() {
 
           <Link
             to="/"
-            className="absolute left-1/2 flex -translate-x-1/2 items-center transition hover:opacity-85"
+            className="absolute left-1/2 flex w-[min(70vw,260px)] -translate-x-1/2 items-center justify-center transition hover:opacity-85"
             aria-label={logoAlt}
           >
             <img
               src={logoSrc}
               alt={logoAlt}
-              className={`object-contain transition-all duration-300 ${
+              className={`w-full max-w-full object-contain transition-all duration-300 ${
                 isFacilitaPage
-                  ? "h-14 max-w-[260px] sm:h-16 sm:max-w-[320px]"
+                  ? "h-auto max-h-14 sm:max-h-16"
                   : isScrolled
-                    ? "h-14 drop-shadow-[0_4px_15px_rgba(255,255,255,0.5)]"
-                    : "h-24 drop-shadow-[0_4px_15px_rgba(255,255,255,0.5)] sm:h-32"
+                    ? "h-auto max-h-14 drop-shadow-[0_4px_15px_rgba(255,255,255,0.5)]"
+                    : "h-auto max-h-24 drop-shadow-[0_4px_15px_rgba(255,255,255,0.5)] sm:max-h-32"
               }`}
             />
           </Link>

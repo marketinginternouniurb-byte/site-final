@@ -93,22 +93,22 @@ function Contato() {
   return (
     <PageShell>
       <section className="pt-32 pb-12 bg-secondary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
           <span className="inline-block px-4 py-1.5 bg-primary text-secondary text-xs font-bold tracking-widest uppercase rounded-full mb-4">
             Fale Conosco
           </span>
-          <h1 className="font-poppins text-4xl md:text-6xl font-extrabold leading-tight">
+          <h1 className="font-poppins text-4xl md:text-6xl font-extrabold leading-tight break-words">
             Vamos Conversar?
           </h1>
-          <p className="text-white/80 mt-3 max-w-2xl">
+          <p className="text-white/80 mt-3 max-w-2xl break-words">
             Nosso time está pronto para te ajudar a encontrar o imóvel perfeito.
           </p>
         </div>
       </section>
 
       <section className="py-16 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="space-y-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-10 min-w-0">
+          <div className="space-y-4 min-w-0">
             {infos.map((info, i) => (
               <motion.div
                 key={info.title}
@@ -116,14 +116,14 @@ function Contato() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-card border border-border rounded-xl p-5 flex items-start gap-4"
+                className="bg-card border border-border rounded-xl p-5 flex items-start gap-4 min-w-0"
               >
                 <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                   <info.icon className="w-5 h-5 text-secondary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-bold text-foreground mb-0.5">{info.title}</p>
-                  <p className="text-sm text-muted-foreground">{info.text}</p>
+                  <p className="text-sm text-muted-foreground break-words">{info.text}</p>
                 </div>
               </motion.div>
             ))}
@@ -131,14 +131,14 @@ function Contato() {
               href={`https://wa.me/${contact.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition"
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition text-center break-words"
             >
               <MessageCircle className="w-5 h-5" /> WhatsApp Direto
             </a>
           </div>
 
-          <div className="lg:col-span-2">
-            <form onSubmit={onSubmit} className="bg-card border border-border rounded-2xl p-8 space-y-5">
+          <div className="lg:col-span-2 min-w-0">
+            <form onSubmit={onSubmit} className="bg-card border border-border rounded-2xl p-5 sm:p-8 space-y-5 min-w-0 overflow-hidden">
               <h2 className="font-poppins text-2xl font-bold mb-2">Envie sua mensagem</h2>
               <input
                 type="text"
@@ -151,46 +151,46 @@ function Contato() {
                 aria-hidden="true"
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                <div className="min-w-0">
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Nome</label>
                   <input
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
+                    className="w-full min-w-0 px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
                   />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Telefone</label>
                   <input
                     required
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
+                    className="w-full min-w-0 px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
                   />
                 </div>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">E-mail</label>
                 <input
                   required
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
+                  className="w-full min-w-0 px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm"
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Mensagem</label>
                 <textarea
                   required
                   rows={5}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm resize-none"
+                  className="w-full min-w-0 px-4 py-2.5 rounded-lg border border-border bg-background outline-none focus:border-primary text-sm resize-none"
                 />
               </div>
 

@@ -1,0 +1,5 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Universal Urbanismo">
+  <rect width="64" height="64" rx="14" fill="#123AAA"/>
+  <path d="M14 13h12v24c0 7.2 4.1 11.2 10 11.2s10-4 10-11.2V13h12v24.6C58 51 49.1 60 36 60S14 51 14 37.6V13Z" fill="#FFD700"/>
+  <path d="M26 13h20v10H26V13Z" fill="#FFFFFF"/>
+</svg>

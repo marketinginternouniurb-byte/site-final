@@ -26,6 +26,12 @@ type RuntimeEnv = {
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 const DEFAULT_TURNSTILE_SITE_KEY = "0x4AAAAAADlM-kb3xZFLVUpS";
 const DEFAULT_SITE_URL = "https://site-final2.marketing-internouniurb.workers.dev";
+const STAGING_HOST = "universal-site-staging.marketing-internouniurb.workers.dev";
+const VALID_PROJECT_IDS = [
+  "0a5d6cb7-69df-440e-83a9-6520af62e544",
+  "52dc56a8-5281-45b0-957b-7dfcc2293364",
+  "01b61083-613e-48c1-a044-306def70cca6",
+];
 
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
@@ -90,7 +96,7 @@ async function fetchPublicProjectIds(envInput: unknown): Promise<string[]> {
   const supabaseUrl = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const anonKey = env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !anonKey) return [];
+  if (!supabaseUrl || !anonKey) return VALID_PROJECT_IDS;
 
   try {
     const response = await fetch(
@@ -103,15 +109,16 @@ async function fetchPublicProjectIds(envInput: unknown): Promise<string[]> {
       },
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) return VALID_PROJECT_IDS;
     const rows = (await response.json()) as Array<{ id?: string | number | null }>;
-    return rows
+    const ids = rows
       .map((row) => row.id)
       .filter((id): id is string | number => id !== null && id !== undefined)
       .map(String);
+    return ids.length > 0 ? ids : VALID_PROJECT_IDS;
   } catch (error) {
     console.warn("Nao foi possivel montar sitemap dinamico de empreendimentos.", error);
-    return [];
+    return VALID_PROJECT_IDS;
   }
 }
 
@@ -154,6 +161,19 @@ async function sitemapResponse(request: Request, envInput: unknown): Promise<Res
 
 function robotsResponse(request: Request, envInput: unknown): Response {
   const siteUrl = resolveSiteUrl(envInput, request);
+  const host = new URL(request.url).host;
+  if (host === STAGING_HOST) {
+    return new Response(`User-agent: *\nDisallow: /\n\nSitemap: ${DEFAULT_SITE_URL}/sitemap.xml\n`, {
+      headers: {
+        "cache-control": "public, max-age=900",
+        "content-type": "text/plain; charset=utf-8",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-robots-tag": "noindex, nofollow, noarchive",
+      },
+    });
+  }
+
   return new Response(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /login\n\nSitemap: ${siteUrl}/sitemap.xml\n`, {
     headers: {
       "cache-control": "public, max-age=900",
@@ -197,6 +217,10 @@ function applySecurityHeaders(request: Request, response: Response): Response {
 
   if (url.pathname.startsWith("/admin") || url.pathname === "/login") {
     headers.set("cache-control", "no-store");
+    headers.set("x-robots-tag", "noindex, nofollow, noarchive");
+  }
+
+  if (url.host === STAGING_HOST) {
     headers.set("x-robots-tag", "noindex, nofollow, noarchive");
   }
 

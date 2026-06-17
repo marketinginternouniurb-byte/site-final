@@ -178,18 +178,18 @@ export default function Sobre() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08 }}
-                className="relative bg-white border border-[#123AAA]/10 rounded-[28px] p-7 shadow-sm overflow-hidden"
+                className="relative bg-white border border-[#123AAA]/10 rounded-[28px] p-5 sm:p-7 shadow-sm overflow-hidden"
               >
                 <div className="absolute left-0 top-0 h-full w-1.5 bg-[#FFD700]" />
                 <div className="flex gap-5">
                   <div className="shrink-0 w-12 h-12 rounded-2xl bg-[#123AAA] text-[#FFD700] flex items-center justify-center font-black">
                     {String(index + 1).padStart(2, "0")}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-black text-[#123AAA] uppercase tracking-tight mb-2">
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-black text-[#123AAA] uppercase tracking-tight mb-2 break-words">
                       {item.title}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed font-medium">
+                    <p className="text-gray-600 text-sm leading-relaxed font-medium break-words">
                       {item.text}
                     </p>
                   </div>
